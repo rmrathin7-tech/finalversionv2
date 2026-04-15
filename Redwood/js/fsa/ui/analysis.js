@@ -14,17 +14,15 @@ export function initAnalysis({
     pnlSchema,
     balanceSheetSchema,
     customRatios = [],
-    configSchemas // 👈 Add this here
+    configSchemas
 }) {
 
-    // 👈 Add this block right below the parameters
     const engineConfig = configSchemas || {
         pnlSchema: pnlSchema,
         bsSchema: balanceSheetSchema,
         customRatios: customRatios
     };
 
-    // Helper: Find which schema a section belongs to
     function getSource(sectionKey) {
         if ((pnlSchema?.structure || []).find(s => s.key === sectionKey)) return 'pnl';
         if ((balanceSheetSchema?.structure || []).find(s => s.key === sectionKey)) return 'bs';
@@ -45,7 +43,6 @@ export function initAnalysis({
     }
 
     function initializeAnalysisWorkbench() {
-        // Reclass tray toggle
         const reclassTrayBtn = document.getElementById('reclass-toggle-btn');
         const reclassTray = document.getElementById('reclass-tray');
         if (reclassTrayBtn && reclassTray) {
@@ -70,11 +67,11 @@ export function initAnalysis({
             const isCompare = e.target.value === "compare";
             document.getElementById("set-b-container").style.display = isCompare ? "block" : "none";
         });
-        
+
         document.getElementById("run-analysis-btn").addEventListener("click", runAnalysis);
         document.getElementById("reclass-table-btn")?.addEventListener("click", renderReclassifiedTable);
         document.getElementById("reset-analysis-btn")?.addEventListener("click", resetAnalysis);
-        
+
         const saveBtn = document.getElementById("save-analysis-btn");
         saveBtn.replaceWith(saveBtn.cloneNode(true));
         document.getElementById("save-analysis-btn").addEventListener("click", async () => {
@@ -99,44 +96,38 @@ export function initAnalysis({
             if (!currentFsaData.savedAnalyses) currentFsaData.savedAnalyses = [];
             currentFsaData.savedAnalyses.push(payload);
 
-            await updateDocRef(doc(db,"projects",projectId,"fsa",fsaId), { savedAnalyses: currentFsaData.savedAnalyses });
+            await updateDocRef(doc(db, "projects", projectId, "fsa", fsaId), { savedAnalyses: currentFsaData.savedAnalyses });
             alert("Saved successfully");
-            renderSavedAnalysesLocal(); // 🌟 FIX: Render UI instantly
+            renderSavedAnalysesLocal();
         });
 
-        // 🌟 FIX: Global functions to load and delete bookmarks from HTML
         window.loadSavedAnalysis = (index) => {
             const saved = currentFsaData.savedAnalyses[index];
             if (!saved) return;
 
-            // Clear existing
             document.querySelectorAll("#metric-selector input, #metric-selector-b input, #analysis-year-selector input").forEach(cb => cb.checked = false);
 
-            // Check saved Set A
             (saved.config.metricsA || []).forEach(k => {
                 const cb = document.querySelector(`#metric-selector input[value="${k}"]`);
                 if (cb) cb.checked = true;
             });
 
-            // Check saved Set B
             (saved.config.metricsB || []).forEach(k => {
                 const cb = document.querySelector(`#metric-selector-b input[value="${k}"]`);
                 if (cb) cb.checked = true;
             });
 
-            // Check saved Years
             (saved.config.years || []).forEach(y => {
                 const cb = document.querySelector(`#analysis-year-selector input[value="${y}"]`);
                 if (cb) cb.checked = true;
             });
 
-            // Restore dropdowns
             if (saved.config.mode) document.getElementById("analysis-mode").value = saved.config.mode;
             if (saved.config.setMode) document.getElementById("analysis-set-mode").value = saved.config.setMode;
-            
+
             document.getElementById("analysis-mode").dispatchEvent(new Event("change"));
             document.getElementById("analysis-set-mode").dispatchEvent(new Event("change"));
-            
+
             if (saved.config.chart) document.getElementById("analysis-chart-type").value = saved.config.chart;
             if (saved.context !== undefined) document.getElementById("analysis-context").value = saved.context;
 
@@ -151,44 +142,37 @@ export function initAnalysis({
         };
 
         initializeReclassification();
-        renderSavedAnalysesLocal(); // 🌟 FIX: Load initial saves
+        renderSavedAnalysesLocal();
     }
 
     function resetAnalysis() {
-        // Clear all checkboxes
         document.querySelectorAll("#metric-selector input, #metric-selector-b input, #analysis-year-selector input").forEach(cb => cb.checked = false);
-        
-        // Reset dropdowns
+
         document.getElementById("analysis-mode").value = "raw";
         document.getElementById("analysis-set-mode").value = "single";
         updateChartTypeOptions();
-        
-        // Hide compare section
+
         document.getElementById("set-b-container").style.display = "none";
-        
-        // Clear chart
+
         if (analysisChart) {
             analysisChart.destroy();
             analysisChart = null;
         }
-        
-        // Clear table
+
         const area = document.getElementById("analysis-table");
         if (area) {
             area.innerHTML = "<p class='aw-empty'>Select metrics + years in the sidebar, then click Run Analysis.</p>";
         }
 
-        // Clear notes
         const ctxBox = document.getElementById("analysis-context");
         if (ctxBox) ctxBox.value = "";
     }
 
-    // 🌟 FIX: Populates the HTML div with your saved elements
     function renderSavedAnalysesLocal() {
         const container = document.getElementById("saved-analyses");
         if (!container) return;
         const list = currentFsaData.savedAnalyses || [];
-        
+
         if (list.length === 0) {
             container.innerHTML = `<div style="opacity:0.5; font-size:12px; font-style:italic; padding:4px 0;">No saved analyses yet.</div>`;
             return;
@@ -198,7 +182,7 @@ export function initAnalysis({
             <div style="position:relative; padding-right:24px;">
                 <div onclick="window.loadSavedAnalysis(${i})">
                     <strong>${a.name}</strong>
-                    <span style="display:block; opacity:0.6; font-size:9px;">${(a.config.metricsA || []).length} metrics, ${(a.config.years || []).length} yrs</span>
+                    <span style="display:block; opacity:0.6; font-size:9px;">${(a.config.metricsA?.length ?? 0)} metrics, ${(a.config.years?.length ?? 0)} yrs</span>
                 </div>
                 <button onclick="event.stopPropagation(); window.deleteSavedAnalysis(${i})" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--fsa-negative); cursor:pointer; font-size:14px; opacity:0.7;">✕</button>
             </div>
@@ -229,27 +213,20 @@ export function initAnalysis({
         if (!selectedKeys.length) { container.innerHTML = "<p class='aw-empty'>Select at least one metric.</p>"; return; }
 
         let html = `<table><tr><th>Metric</th>`;
-        years.forEach(y=>{ html += `<th>${y}</th>`; });
+        years.forEach(y => { html += `<th>${y}</th>`; });
         html += `</tr>`;
 
         selectedKeys.forEach(key => {
-            // Clean up label for display
             let displayLabel = key;
-            
+
             if (key.includes('__')) {
-                // Look up the friendly Section Title from the Schema
                 const [docKey, sectionKey] = key.split('__');
                 const schema = docKey === 'pnl' ? pnlSchema : balanceSheetSchema;
                 const section = (schema?.structure || []).find(s => s.key === sectionKey);
                 displayLabel = section ? section.title : sectionKey;
-                
             } else if (key.startsWith('cr__')) {
-                // Look up Custom Ratio label
                 displayLabel = customRatios.find(r => r.key === key.slice(4))?.label || key;
-                
             } else {
-                // Look up Standard Metric label (e.g., EBITDA, Gross Profit)
-                // Note: Ensure you are using the engineConfig variable we added previously!
                 const metric = (engineConfig?.metricsFormulas || []).find(m => m.key === key);
                 if (metric) displayLabel = metric.label;
             }
@@ -266,7 +243,7 @@ export function initAnalysis({
                     const store = source === "pnl" ? currentFsaData.data?.pnl : currentFsaData.data?.bs;
                     rawValue = store?.[sectionKey]?.[year]?.[item] || 0;
                 } else {
-                    rawValue = key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__',''), year) : (model[key] || 0);
+                    rawValue = key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__', ''), year) : (model[key] || 0);
                 }
 
                 const formattedRaw = formatValue(key, rawValue);
@@ -275,7 +252,7 @@ export function initAnalysis({
                     html += `<td>${formattedRaw}</td>`;
                 } else {
                     if (index === 0) {
-                        html += `<td>${mode === "yoy" ? "—" : formattedRaw}</td>`;
+                        html += `<td>${mode === "yoy" ? '<span style="opacity:0.4;font-size:11px">Base</span>' : formattedRaw}</td>`;
                     } else {
                         const prevYear = years[index - 1];
                         const prevModel = buildFinancialModel(currentFsaData.data, prevYear, reclassMap, engineConfig);
@@ -287,7 +264,7 @@ export function initAnalysis({
                             const store = source === "pnl" ? currentFsaData.data?.pnl : currentFsaData.data?.bs;
                             prevVal = store?.[sectionKey]?.[prevYear]?.[item] || 0;
                         } else {
-                            prevVal = key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__',''), prevYear) : (prevModel[key] || 0);
+                            prevVal = key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__', ''), prevYear) : (prevModel[key] || 0);
                         }
 
                         const yoy = prevVal !== 0 ? ((rawValue - prevVal) / prevVal) * 100 : 0;
@@ -296,7 +273,7 @@ export function initAnalysis({
                         if (mode === "yoy") {
                             html += `<td><span class="${yoyClass}">${yoy.toFixed(1)}%</span></td>`;
                         } else if (mode === "both") {
-                            html += `<td>${formattedRaw}<br><span style="font-size:10px;" class="${yoyClass}">(${yoy > 0 ? '+':''}${yoy.toFixed(1)}%)</span></td>`;
+                            html += `<td>${formattedRaw}<br><span style="font-size:10px;" class="${yoyClass}">(${yoy > 0 ? '+' : ''}${yoy.toFixed(1)}%)</span></td>`;
                         }
                     }
                 }
@@ -320,21 +297,15 @@ export function initAnalysis({
 
         selectedKeys.forEach((key, index) => {
             let displayLabel = key;
-            
+
             if (key.includes('__')) {
-                // Look up the friendly Section Title from the Schema
                 const [docKey, sectionKey] = key.split('__');
                 const schema = docKey === 'pnl' ? pnlSchema : balanceSheetSchema;
                 const section = (schema?.structure || []).find(s => s.key === sectionKey);
                 displayLabel = section ? section.title : sectionKey;
-                
             } else if (key.startsWith('cr__')) {
-                // Look up Custom Ratio label
                 displayLabel = customRatios.find(r => r.key === key.slice(4))?.label || key;
-                
             } else {
-                // Look up Standard Metric label (e.g., EBITDA, Gross Profit)
-                // Note: Ensure you are using the engineConfig variable we added previously!
                 const metric = (engineConfig?.metricsFormulas || []).find(m => m.key === key);
                 if (metric) displayLabel = metric.label;
             }
@@ -347,7 +318,7 @@ export function initAnalysis({
                     const store = source === "pnl" ? currentFsaData.data?.pnl : currentFsaData.data?.bs;
                     return store?.[sectionKey]?.[year]?.[item] || 0;
                 }
-                return key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__',''), year) : (model[key] || 0);
+                return key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__', ''), year) : (model[key] || 0);
             });
 
             if (analysisMode === "raw" || analysisMode === "both") {
@@ -368,7 +339,7 @@ export function initAnalysis({
                 const yoyData = baseData.map((val, i) => {
                     if (i === 0) return null;
                     const prev = baseData[i - 1];
-                    if (isPercentage) return val - prev; 
+                    if (isPercentage) return val - prev;
                     return prev !== 0 ? ((val - prev) / prev) * 100 : 0;
                 });
 
@@ -382,6 +353,7 @@ export function initAnalysis({
                     tension: 0.3,
                     borderDash: [5, 5],
                     pointRadius: 4,
+                    spanGaps: false,
                     yAxisID: analysisMode === "both" ? "y1" : "y"
                 });
             }
@@ -411,8 +383,6 @@ export function initAnalysis({
         years.forEach((year, index) => {
             const totalA = calculateSetTotal(setA, year);
             const totalB = calculateSetTotal(setB, year);
-            const diff = totalA - totalB;
-            const ratio = totalB !== 0 ? totalA / totalB : 0;
             let displayA = totalA, displayB = totalB;
 
             if (mode === "yoy" && index > 0) {
@@ -421,6 +391,10 @@ export function initAnalysis({
                 displayA = prevA !== 0 ? ((totalA - prevA) / prevA) * 100 : 0;
                 displayB = prevB !== 0 ? ((totalB - prevB) / prevB) * 100 : 0;
             }
+
+            // FIX: diff and ratio computed from displayA/displayB, not raw totals
+            const diff = displayA - displayB;
+            const ratio = displayB !== 0 ? displayA / displayB : 0;
 
             html += `<tr>
                 <td>${year}</td>
@@ -436,18 +410,18 @@ export function initAnalysis({
         renderComparisonChart(setA, setB, years, mode);
     }
 
+    // FIX: buildFinancialModel hoisted outside loop; += instead of =
     function calculateSetTotal(setKeys, year) {
         let total = 0;
+        const model = buildFinancialModel(currentFsaData.data, year, reclassMap, engineConfig);
         setKeys.forEach(key => {
             if (key.includes("__")) {
                 const [sectionKey, item] = key.split("__");
                 const source = getSource(sectionKey);
                 const store = source === "pnl" ? currentFsaData.data?.pnl : currentFsaData.data?.bs;
-                const model = buildFinancialModel(currentFsaData.data, year, reclassMap, engineConfig);
                 total += model[sectionKey] !== undefined ? model[sectionKey] : (store?.[sectionKey]?.[year]?.[item] || 0);
             } else {
-                const model = buildFinancialModel(currentFsaData.data, year, reclassMap, engineConfig);
-                total += key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__',''), year) : (model[key] || 0);
+                total += key.startsWith('cr__') ? computeCustomRatioValue(key.replace('cr__', ''), year) : (model[key] || 0);
             }
         });
         return total;
@@ -460,6 +434,7 @@ export function initAnalysis({
         if (analysisChart) analysisChart.destroy();
         const chartType = document.getElementById("analysis-chart-type")?.value || "line";
 
+        // FIX: i > 0 guard (was i === 0, which caused years[-1] = undefined)
         const dataA = years.map((y, i) => {
             const raw = calculateSetTotal(setA, y);
             if (mode === "yoy" && i > 0) { const prev = calculateSetTotal(setA, years[i - 1]); return prev !== 0 ? ((raw - prev) / prev) * 100 : 0; }
@@ -482,7 +457,14 @@ export function initAnalysis({
                     { label: "Difference", data: diffData, borderColor: "#10b981", borderWidth: 2, borderDash: [5, 5], type: "line", fill: false }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: {color:"#9ca3af"} } }, scales: { x: {ticks:{color:"#9ca3af"}, grid:{color:"rgba(255,255,255,0.05)"}}, y: {ticks:{color:"#9ca3af"}, grid:{color:"rgba(255,255,255,0.05)"}} } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: "#9ca3af" } } },
+                scales: {
+                    x: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,0.05)" } },
+                    y: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,0.05)" } }
+                }
+            }
         });
     }
 
@@ -493,8 +475,8 @@ export function initAnalysis({
         fromSelect.innerHTML = ""; toSelect.innerHTML = ""; itemSelect.innerHTML = "";
 
         const allSections = [
-            ...(pnlSchema?.structure || []).filter(s => s.type === "section").map(s => ({...s, source: 'pnl'})),
-            ...(balanceSheetSchema?.structure || []).filter(s => s.type === "section").map(s => ({...s, source: 'bs'}))
+            ...(pnlSchema?.structure || []).filter(s => s.type === "section").map(s => ({ ...s, source: 'pnl' })),
+            ...(balanceSheetSchema?.structure || []).filter(s => s.type === "section").map(s => ({ ...s, source: 'bs' }))
         ];
 
         allSections.forEach(section => {
@@ -528,8 +510,10 @@ export function initAnalysis({
             alert("Reclassification Applied");
         });
 
+        // FIX: was fsaState.reclassMap (ReferenceError) — now mutates reclassMap in scope
         document.getElementById("clear-reclass").addEventListener("click", () => {
-            fsaState.reclassMap = { pnl: {}, bs: {} }; 
+            reclassMap.pnl = {};
+            reclassMap.bs = {};
             document.getElementById("reclass-tab-container").style.display = "none";
             document.getElementById("analysis-table").innerHTML = "<p class='aw-empty'>Reclassification cleared.</p>";
         });
@@ -537,9 +521,9 @@ export function initAnalysis({
 
     function renderReclassifiedTable() {
         const container = document.getElementById("analysis-table");
-        const years = [...currentFsaData.years].sort(
-  (a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)
-) || [];
+        const years = [...(currentFsaData.years || [])].sort(
+            (a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)
+        );
         let html = `<table><tr><th>Metric</th>${years.map(y => `<th>${y}</th>`).join("")}</tr>`;
 
         html += `<tr><td colspan="${years.length + 1}" style="font-weight:800;color:var(--accent);background:var(--fsa-surface2);">PROFIT & LOSS</td></tr>`;
@@ -575,7 +559,6 @@ export function initAnalysis({
         container.innerHTML = "";
         const years = currentFsaData.years || [];
 
-        // 1. P&L Sections
         const pnlGroup = document.createElement("div");
         pnlGroup.className = "aw-sidebar-group";
         pnlGroup.innerHTML = `<div class="aw-group-title">Profit & Loss</div>`;
@@ -586,7 +569,7 @@ export function initAnalysis({
             summary.innerText = section.title;
             details.appendChild(summary);
             details.appendChild(createMetricCheckbox(section.title + " (Total)", section.key, true));
-            
+
             const dataSource = currentFsaData.data?.pnl?.[section.key];
             const uniqueItems = new Set();
             years.forEach(year => { Object.keys(dataSource?.[year] || {}).forEach(i => uniqueItems.add(i)); });
@@ -595,7 +578,6 @@ export function initAnalysis({
         });
         container.appendChild(pnlGroup);
 
-        // 2. BS Sections
         const bsGroup = document.createElement("div");
         bsGroup.className = "aw-sidebar-group";
         bsGroup.innerHTML = `<div class="aw-group-title">Balance Sheet</div>`;
@@ -606,7 +588,7 @@ export function initAnalysis({
             summary.innerText = section.title;
             details.appendChild(summary);
             details.appendChild(createMetricCheckbox(section.title + " (Total)", section.key, true));
-            
+
             const dataSource = currentFsaData.data?.bs?.[section.key];
             const uniqueItems = new Set();
             years.forEach(year => { Object.keys(dataSource?.[year] || {}).forEach(i => uniqueItems.add(i)); });
@@ -615,7 +597,6 @@ export function initAnalysis({
         });
         container.appendChild(bsGroup);
 
-        // 3. Custom Ratios
         if (customRatios.length > 0) {
             const ratioGroup = document.createElement("div");
             ratioGroup.className = "aw-sidebar-group";
@@ -631,12 +612,12 @@ export function initAnalysis({
         const container = document.getElementById("analysis-year-selector");
         if (!container) return;
         container.innerHTML = "";
-       const sortedYears = [...(currentFsaData?.years ?? [])].sort(
-  (a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)
-)
-sortedYears.forEach(year => {
-  container.appendChild(createMetricCheckbox(year, year, false, true))
-})
+        const sortedYears = [...(currentFsaData?.years ?? [])].sort(
+            (a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)
+        );
+        sortedYears.forEach(year => {
+            container.appendChild(createMetricCheckbox(year, year, false, true));
+        });
     }
 
     function createMetricCheckbox(label, value, isTotal, isChecked = false) {
@@ -645,10 +626,10 @@ sortedYears.forEach(year => {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.value = value;
-        if(isChecked) checkbox.checked = true;
+        if (isChecked) checkbox.checked = true;
         const span = document.createElement("span");
         span.innerText = label;
-        if(isTotal) span.style.fontWeight = "700";
+        if (isTotal) span.style.fontWeight = "700";
         labelEl.appendChild(checkbox);
         labelEl.appendChild(span);
         return labelEl;
@@ -674,7 +655,7 @@ sortedYears.forEach(year => {
                 <!-- Sidebar -->
                 <div class="aw-sidebar">
                     <div class="aw-sidebar-header">Analysis Config</div>
-                    
+
                     <div class="aw-sidebar-section">
                         <div class="aw-sidebar-title">Metrics (Set A)</div>
                         <div id="metric-selector" class="aw-metric-list"></div>
