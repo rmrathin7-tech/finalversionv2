@@ -1,0 +1,110 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Module Hub - Redwood</title>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="css/dashboard.css">
+        <link rel="stylesheet" href="css/module-hub.css">
+        <link rel="stylesheet" href="css/taskboard.css">
+        <link rel="stylesheet" href="css/modulehub-taskboard.css">
+    </head>
+    <body>
+        <canvas id="space-canvas"></canvas>
+
+        <div class="workspace">
+
+            <!-- ── HEADER ────────────────────────────────── -->
+            <header class="hub-header">
+                <div class="header-left">
+                    <button id="back-btn" class="back-btn">← Back</button>
+                    <div class="project-info">
+                        <h1 id="project-name">Loading...</h1>
+                        <p>Module Hub</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="create-im-btn"  class="hub-action-btn im-btn">📊 + New IM</button>
+                    <button id="create-fsa-btn" class="hub-action-btn fsa-btn">📈 + New FSA</button>
+                        <button id="create-fc-btn"  class="hub-action-btn fc-btn">✅ + New FC</button>
+
+                    <button id="hub-taskboard-btn" class="hub-action-btn tb-btn">🗂 Task Board</button>
+                </div>
+            </header>
+
+            <main class="hub-main">
+
+                <!-- ── PROGRESS & PROTOCOLS ───────────────── -->
+                <section class="hub-top-section">
+
+                    <!-- Protocols -->
+                    <div class="protocol-panel">
+                        <div class="panel-header">
+                            <h3>📋 Protocols</h3>
+                            <button id="add-protocol-btn" class="panel-add-btn">+ Add</button>
+                        </div>
+                        <div id="protocol-list" class="protocol-list">
+                            <div class="empty-state-small">No protocols defined</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Updates -->
+                    <div class="updates-panel">
+                        <div class="panel-header">
+                            <h3>🔄 Progress Updates</h3>
+                        </div>
+                        <div id="updates-feed" class="updates-feed"></div>
+                        <div class="updates-input-row">
+                            <input type="text" id="update-input" placeholder="Post a progress update..."/>
+                            <button id="post-update-btn">Post</button>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ── MODULES ────────────────────────────── -->
+                <section class="modules-section">
+
+                    <div class="module-category">
+                        <h3>📊 Investment Memos</h3>
+                        <div id="im-grid" class="module-grid">
+                            <div class="empty-state">No IMs created yet</div>
+                        </div>
+                    </div>
+
+                    <div class="module-category">
+                        <h3>📈 Financial Analysis</h3>
+                        <div id="fsa-grid" class="module-grid">
+                            <div class="empty-state">No FSAs created yet</div>
+                        </div>
+                    </div>
+                    <div class="module-category">
+                        <h3>✅ First Connect Report</h3>
+                        <div id="fc-grid" class="module-grid">
+                            <div class="empty-state">No FCs created yet</div>
+                        </div>
+                    </div>
+
+
+                </section>
+
+            </main>
+        </div>
+
+        <!-- ── TASK BOARD OVERLAY ─────────────────────────── -->
+        <div id="hub-taskboard-overlay" class="taskboard-overlay hidden">
+            <div class="taskboard-header">
+                <h2>🗂 Task Board — <span id="hub-tb-project-name"></span></h2>
+                <button id="hub-taskboard-close" class="taskboard-close-btn">✕</button>
+            </div>
+            <div class="taskboard-body">
+                <div id="hub-columns-container" class="columns-container"></div>
+                <button id="hub-add-column-btn" class="add-column-btn">+ Add Column</button>
+            </div>
+        </div>
+
+        <script type="module" src="js/module-hub.js"></script>
+        <script type="module" src="js/modulehub-taskboard.js"></script>
+    </body>
+    </html>

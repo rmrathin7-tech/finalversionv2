@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>IM Schema Editor – Redwood</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Keep existing CSS to prevent breaking global app variables if any exist -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/fsa.css">
+    <link rel="stylesheet" href="css/im-settings.css">
+
+    <!-- Tailwind CSS (Powers the new 3-Pane Architecture instantly) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        redwood: { 500: '#ef4444', 600: '#dc2626', 900: '#7f1d1d', accent: '#ff3b3b' },
+                        surface: { base: '#0B0F19', panel: '#111827', card: '#1F2937', border: '#374151', hover: '#2A3441' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- SortableJS & Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+  
+</head>
+<body class="flex flex-col h-screen antialiased bg-surface-base text-gray-200 overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="h-14 bg-surface-panel border-b border-surface-border flex items-center justify-between px-6 shrink-0 z-20 shadow-md">
+    <div class="flex items-center gap-4">
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">
+            <i data-lucide="menu"></i>
+        </button>
+        
+        <div class="flex items-center gap-2">
+            <div class="w-1.5 h-6 bg-redwood-accent rounded-sm"></div>
+            <h1 class="text-xl font-extrabold tracking-wider text-white">REDWOOD</h1>
+        </div>
+            <div class="w-px h-6 bg-surface-border mx-2"></div>
+            <span class="text-sm font-semibold text-gray-400">IM Schema Architect</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a id="back-btn" href="im.html" class="mr-4 text-sm font-semibold text-gray-400 hover:text-white transition-colors">← Back to IM</a>
+            
+            <input type="file" id="import-input" accept=".json" class="hidden">
+            <button id="btn-import" class="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-card border border-surface-border hover:border-gray-400 transition-colors text-sm font-semibold text-gray-300">
+                <i data-lucide="upload" class="w-4 h-4"></i> Import
+            </button>
+            <button id="btn-export" class="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-card border border-surface-border hover:border-gray-400 transition-colors text-sm font-semibold text-gray-300">
+                <i data-lucide="download" class="w-4 h-4"></i> Export
+            </button>
+            <button id="btn-save" class="flex items-center gap-2 px-4 py-1.5 rounded bg-redwood-600 hover:bg-redwood-500 transition-colors text-sm font-bold text-white shadow-lg shadow-redwood-900/20">
+                <i data-lucide="save" class="w-4 h-4"></i> Deploy Schema
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace (3-Pane Layout) -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- PANE 1: Sections (Left) -->
+        <aside class="w-72 bg-surface-base border-r border-surface-border flex flex-col shrink-0 relative z-10">
+            <div class="p-4 border-b border-surface-border bg-surface-panel flex justify-between items-center">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Document Structure</h2>
+                <button id="btn-add-section" class="text-redwood-500 hover:text-redwood-400 p-1 rounded hover:bg-redwood-500/10 transition-colors" title="Add Section">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-3">
+                <div id="section-list" class="space-y-1">
+                    <!-- Sections injected by JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- PANE 2: Canvas (Center) -->
+        <section class="flex-1 bg-[#0f141f] flex flex-col relative">
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
+            
+            <div class="p-4 border-b border-surface-border bg-surface-panel/80 backdrop-blur flex justify-between items-center relative z-10">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="layout-template" class="w-5 h-5 text-redwood-500"></i>
+                    <h2 id="active-section-title" class="text-lg font-bold text-white">Select a section</h2>
+                </div>
+                <button id="btn-add-block" class="hidden flex items-center gap-2 px-3 py-1.5 rounded border border-redwood-500/30 text-redwood-500 hover:bg-redwood-500/10 transition-colors text-sm font-semibold">
+                    <i data-lucide="blocks" class="w-4 h-4"></i> Add Block
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8 relative z-10">
+                <div id="canvas-empty-state" class="flex flex-col items-center justify-center h-full opacity-50">
+                    <i data-lucide="mouse-pointer-square-dashed" class="w-16 h-16 mb-4 text-gray-500"></i>
+                    <p class="text-gray-400 font-semibold">Select or create a section to start building.</p>
+                </div>
+                
+                <div id="block-list" class="max-w-3xl mx-auto space-y-4 pb-20">
+                    <!-- Blocks injected by JS -->
+                </div>
+            </div>
+
+            <!-- Block Selector Modal -->
+            <div id="block-selector-modal" class="hidden absolute inset-0 bg-surface-base/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="bg-surface-panel border border-surface-border rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-transform duration-200">
+                    <div class="p-4 border-b border-surface-border flex justify-between items-center bg-surface-card">
+                        <h3 class="font-bold text-white">Select Block Type</h3>
+                        <button id="btn-close-modal" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="block-types-grid">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANE 3: Inspector (Right) -->
+        <aside class="w-80 bg-surface-panel border-l border-surface-border flex flex-col shrink-0 relative z-20 shadow-[-10px_0_15px_rgba(0,0,0,0.2)]">
+            <div class="p-4 border-b border-surface-border flex items-center gap-2">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4 text-gray-400"></i>
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Inspector</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-5" id="inspector-panel">
+                <div class="flex flex-col items-center justify-center h-full opacity-40 text-center px-4">
+                    <i data-lucide="settings-2" class="w-12 h-12 mb-3 text-gray-500"></i>
+                    <p class="text-sm font-semibold">Select a section or block to configure properties.</p>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-4 right-6 bg-surface-card border-l-4 border-redwood-500 text-white px-6 py-4 rounded shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-[100] pointer-events-none">
+        <p id="toast-message" class="text-sm font-semibold flex items-center gap-2"></p>
+    </div>
+
+    <!-- Wire up the logic we just generated -->
+    <script type="module" src="js/im-settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FSA Workbench | Redwood</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PREVENT THEME FLASH (must be first) -->
+  <script>
+    const savedTheme = localStorage.getItem('redwood-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/fsa.css">
+
+  <!-- Inter Font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+</head>
+
+<body class="fsa-view">
+
+  <!-- ── Ambient Background Glows (styled via fsa.css) ──────── -->
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       TOPBAR
+  ═══════════════════════════════════════════════════════════ -->
+  <header class="fsa-topbar">
+
+    <!-- Sidebar toggle (leftmost, aligns with sidebar width) -->
+    <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">
+      &#9776;
+    </button>
+
+    <!-- Brand -->
+    <div class="fsa-brand">
+      <span class="fsa-brand-logo">REDWOOD</span>
+      <span class="fsa-topbar-sep"></span>
+      <span id="company-name-display" class="fsa-project-name">Financial Statement Analysis</span>
+    </div>
+
+    <!-- Right actions -->
+<div class="fsa-topbar-right">
+
+  <button id="settings-btn" class="btn-icon" title="Workspace Settings">&#9881;</button>
+
+  <button class="btn-icon" id="theme-toggle-btn" title="Toggle Theme">
+    <span class="light-icon" style="display:none">&#9728;</span>
+    <span class="dark-icon">&#9790;</span>
+  </button>
+
+  <span id="fsa-save-status">&#10003; Auto-saved</span>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="import-json-input" accept=".json" style="display:none">
+
+  <button id="import-json-btn" class="btn-secondary">&#8679; Import JSON</button>
+  <button id="export-json-btn" class="btn-primary">&#8681; Export JSON</button>
+  <button id="back-btn" class="btn-danger">Exit to Hub</button>
+
+</div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       APP LAYOUT  (sidebar + main)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="fsa-layout">
+
+    <!-- ── Collapsible Sidebar ──────────────────────────────── -->
+    <aside class="fsa-sidebar" id="fsa-sidebar">
+
+      <div class="fsa-sidebar-header">
+        <span class="fsa-sidebar-label">FSA Workbench</span>
+      </div>
+
+      <nav class="fsa-sidebar-nav">
+        <button class="fsa-nav-btn active" data-target="dashboard">
+          <span class="nav-icon">&#128202;</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+
+        <button class="fsa-nav-btn " data-target="dataEntry">
+          <span class="nav-icon">&#128203;</span>
+          <span class="nav-label">Data Entry</span>
+        </button>
+
+        <button class="fsa-nav-btn" data-target="statements">
+          <span class="nav-icon">&#128196;</span>
+          <span class="nav-label">Statements</span>
+        </button>
+
+
+
+        <button class="fsa-nav-btn" data-target="analysis">
+          <span class="nav-icon">&#128300;</span>
+          <span class="nav-label">Analysis</span>
+        </button>
+
+      </nav>
+    </aside>
+
+    <!-- ── Main Content (JS injects panels here) ────────────── -->
+    <main class="fsa-main">
+      <div id="canvas">
+        <!-- dataEntry.js / statements.js / dashboard.js / analysis.js render here -->
+      </div>
+    </main>
+
+  </div><!-- /.fsa-layout -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       THEME TOGGLE SCRIPT
+  ═══════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      const btn       = document.getElementById('theme-toggle-btn');
+      const lightIcon = btn.querySelector('.light-icon');
+      const darkIcon  = btn.querySelector('.dark-icon');
+
+      function applyIcons(theme) {
+        lightIcon.style.display = theme === 'light' ? 'inline' : 'none';
+        darkIcon.style.display  = theme === 'light' ? 'none'   : 'inline';
+      }
+
+      // Init
+      applyIcons(document.documentElement.getAttribute('data-theme') || 'dark');
+
+      btn.addEventListener('click', function () {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next    = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('redwood-theme', next);
+        applyIcons(next);
+      });
+    })();
+  </script>
+
+  <!-- ══════════════════════════════════════════════════════════
+       COLLAPSIBLE SIDEBAR SCRIPT
+  ═══════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      const toggleBtn = document.getElementById('sidebar-toggle-btn');
+      const sidebar   = document.getElementById('fsa-sidebar');
+
+      // Restore collapsed state
+      if (localStorage.getItem('sidebar-collapsed') === 'true') {
+        sidebar.classList.add('collapsed');
+      }
+
+      toggleBtn.addEventListener('click', function () {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem(
+          'sidebar-collapsed',
+          sidebar.classList.contains('collapsed')
+        );
+      });
+    })();
+  </script>
+
+  <!-- ── FSA Application Entry Point ──────────────────────── -->
+  <script type="module" src="js/fsa.js"></script>
+<script>
+// ── Cursor glow on KPI cards ─────────────────────────────────
+document.addEventListener('mousemove', (e) => {
+  document.querySelectorAll('.db-kpi-card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - rect.top)  + 'px');
+  });
+});
+
+// ── Count-up animation on KPI values ─────────────────────────
+function animateCountUp(el) {
+  const raw = el.textContent.replace(/[^0-9.-]/g, '');
+  const target = parseFloat(raw);
+  if (isNaN(target) || target === 0) return;
+  const prefix = el.textContent.match(/^[^0-9-]*/)?.[0] || '';
+  const suffix = el.textContent.match(/[^0-9.]+$/)?.[0] || '';
+  const duration = 900;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3); // ease-out-cubic
+    const val = target * ease;
+    el.textContent = prefix + val.toLocaleString('en-IN', {
+      maximumFractionDigits: target % 1 !== 0 ? 1 : 0
+    }) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Observe KPI grid for new cards rendered by dashboard.js
+const kpiObserver = new MutationObserver(() => {
+  document.querySelectorAll('.db-kpi-val:not(.counted)').forEach(el => {
+    el.classList.add('counted');
+    animateCountUp(el);
+  });
+});
+
+kpiObserver.observe(document.getElementById('canvas'), {
+  childList: true,
+  subtree: true
+});
+</script>
+
+</body>
+</html>

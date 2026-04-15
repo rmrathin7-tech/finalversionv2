@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Investment Memo | Redwood</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.addEventListener("DOMContentLoaded", function(){
+            const saved = localStorage.getItem("im-theme") || "dark-mode";
+            document.body.className = 'im-view ' + saved;
+        });
+    </script>
+    <link rel="stylesheet" href="css/im.css">
+    <link rel="stylesheet" href="css/taskboard.css">
+    <link rel="stylesheet" href="css/modulehub-taskboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+</head>
+<body class="im-view dark-mode">
+
+    <div class="im-layout">
+
+        <!-- Sidebar -->
+        <aside class="im-sidebar">
+            <div class="im-brand">RED<span>WOOD</span></div>
+
+            <button id="exit-btn" class="sidebar-exit-btn">← Exit to Module Hub</button>
+
+            <!-- ✅ FIX: Added notification badge span -->
+            <button id="comments-toggle-btn" class="sidebar-exit-btn">
+                💬 Comments
+                <span id="notification-badge" style="
+                    display: none;
+                    background: var(--s-accent, #ef4444);
+                    color: #fff;
+                    font-size: 10px;
+                    font-weight: 700;
+                    border-radius: 999px;
+                    padding: 1px 6px;
+                    margin-left: 6px;
+                    vertical-align: middle;
+                "></span>
+            </button>
+
+            <!-- Nav built dynamically from schema by im.js -->
+            <nav class="im-nav" id="im-nav"></nav>
+
+            <div class="sidebar-divider"></div>
+
+            <!-- ✅ FIX: Removed class="hidden" — im.js uses style.display to toggle this -->
+            <div class="nav-group">
+                <div class="nav-item nav-parent" id="collab-toggle">🟢 Live Collaborators</div>
+                <div id="collab-list" style="display: none;"></div>
+            </div>
+
+            <div class="im-status">
+                <div class="status-dot"></div>
+                <span>DRAFT</span>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="im-main">
+            <header class="im-header">
+                <div class="im-title-block-wrapper">
+                    <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">☰</button>
+                    <div class="im-title-block">
+                        <h1 id="im-title">Untitled Memo</h1>
+                        <span class="im-meta">INVESTMENT MEMO</span>
+                    </div>
+                </div>
+                <div class="im-actions">
+                    <div class="theme-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <label for="theme-toggle" class="switch-slider"></label>
+                    </div>
+                    <div class="im-button-group">
+                        <button class="im-btn secondary" id="hub-taskboard-btn">🗂 Task Board</button>
+                        <button class="im-btn secondary" id="preview-toggle">Preview</button>
+                        <button class="im-btn secondary" id="export-json-btn">Export JSON</button>
+                        <button class="im-btn secondary" id="versions-btn">Versions</button>
+                        <button class="im-btn primary"   id="commit-btn">Commit Version</button>
+                        <button class="im-btn secondary" id="export-pdf-btn">Export PDF</button>
+                        <a href="im-settings.html" class="im-btn secondary">⚙ Schema</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Editor Canvas — filled by im.js -->
+            <section class="im-canvas" id="im-canvas"></section>
+        </main>
+
+        <!-- Right Side Comments Panel -->
+        <div id="comments-panel">
+            <div class="comments-header">
+                <span>💬 Comments</span>
+                <button class="close-comments-btn" id="close-comments-btn">×</button>
+            </div>
+            <div class="comments-filters">
+                <div class="comments-tabs">
+                    <button class="comment-tab active" data-tab="open">Open</button>
+                    <button class="comment-tab" data-tab="resolved">Resolved</button>
+                </div>
+                <select id="comment-section-filter">
+                    <option value="all">All Sections</option>
+                    <option value="current">This Section Only</option>
+                </select>
+            </div>
+            <div id="comments-list"></div>
+        </div>
+
+    </div>
+
+    <!-- ✅ FIX: Toast notification element (was missing entirely) -->
+    <div id="toast" style="
+        position: fixed;
+        bottom: -80px;
+        right: 24px;
+        background: var(--surface-card, #1e1e1e);
+        border-left: 4px solid #22c55e;
+        color: #fff;
+        padding: 14px 24px;
+        border-radius: 6px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        transition: all 0.3s ease;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+    ">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Versions Modal -->
+    <div id="versions-modal" class="history-modal hidden">
+        <div class="history-content">
+            <h3>Versions</h3>
+            <div id="versions-list"></div>
+            <button id="close-versions">Close</button>
+        </div>
+    </div>
+
+    <!-- Floating Comment Button -->
+    <div id="comment-float-btn" style="display: none;">💬 Add Comment</div>
+
+    <!-- Comment Compose Box -->
+    <div id="comment-box" style="display: none;">
+        <div style="font-size:11px;opacity:0.6;margin-bottom:6px;">
+            Quoted text: <span id="cb-quoted-text" style="font-style:italic;color:var(--s-accent);"></span>
+        </div>
+        <textarea id="comment-input" placeholder="Type your comment here..." style="
+            width: 100%;
+            min-height: 60px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 6px;
+            border-radius: 4px;
+        "></textarea>
+
+        <div id="assign-users-section" style="margin-top:10px">
+            <div style="font-size:11px;font-weight:700;opacity:0.6;margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">
+                Assign / Notify
+            </div>
+            <div id="assign-users-list" style="
+                max-height: 100px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                border: 1px solid var(--border);
+                padding: 4px;
+                border-radius: 4px;
+            ">
+                <div style="font-size:12px;opacity:0.4">Loading users...</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="comment-send-btn" class="fsa-btn" style="
+                flex: 1;
+                background: var(--s-accent);
+                color: #fff;
+                border: none;
+                padding: 6px;
+                border-radius: 4px;
+                cursor: pointer;
+            ">Send</button>
+            <button id="comment-cancel-btn" class="fsa-btn" style="
+                flex: 1;
+                border: 1px solid var(--border);
+                background: transparent;
+                color: var(--text);
+                padding: 6px;
+                border-radius: 4px;
+                cursor: pointer;
+            ">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Shared Task Board Overlay (project-scoped, reused from Module Hub) -->
+    <div id="hub-taskboard-overlay" class="taskboard-overlay hidden">
+        <div class="taskboard-header">
+            <h2>🗂 Task Board — <span id="hub-tb-project-name"></span></h2>
+            <button id="hub-taskboard-close" class="taskboard-close-btn">✕</button>
+        </div>
+        <div class="taskboard-body">
+            <div id="hub-columns-container" class="columns-container"></div>
+            <button id="hub-add-column-btn" class="add-column-btn">+ Add Column</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.min.js"></script>
+    <script type="module" src="js/modulehub-taskboard.js"></script>
+    <script type="module" src="js/im.js"></script>
+
+</body>
+</html>

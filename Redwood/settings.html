@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace Settings – Redwood</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+<style>
+  /* ── DESIGN TOKENS ── */
+  :root {
+    --bg-base:           #030712;
+    --bg-surface:        rgba(17, 24, 39, 0.70);
+    --bg-surface-hover:  rgba(31, 41, 55, 0.85);
+    --bg-input:          #0f172a;
+    --border-subtle:     rgba(255, 255, 255, 0.08);
+    --border-glow:       rgba(99, 102, 241, 0.4);
+    --text-primary:      #ffffff;
+    --text-secondary:    #94a3b8;
+    --text-muted:        #64748b;
+    --gradient-primary:  linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    --gradient-primary-hover: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    --status-success:    #10b981;
+    --status-danger:     #ef4444;
+    --danger-bg:         rgba(239, 68, 68, 0.1);
+    --brand-primary:     #6366f1;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── AMBIENT GLOWS ── */
+  .ambient-glow {
+    position: fixed; top: -20%; left: -10%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(60px);
+  }
+  .ambient-glow-2 {
+    position: fixed; bottom: -20%; right: -10%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+    border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(60px);
+  }
+
+  /* ── TOP BAR ── */
+  .fsa-topbar {
+    position: fixed; top: 0; left: 0; width: 100%; height: 56px;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 28px; box-sizing: border-box; z-index: 200;
+  }
+  .fsa-brand {
+    font-weight: 800; font-size: 15px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+
+  /* ── TAB NAV ── */
+  .settings-tab-nav {
+    position: fixed; top: 56px; left: 0; right: 0; height: 48px;
+    background: rgba(8, 14, 30, 0.95);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: stretch;
+    padding: 0 20px; gap: 2px; z-index: 150; overflow-x: auto;
+  }
+  .settings-tab-nav::-webkit-scrollbar { height: 3px; }
+
+  .tab-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 0 18px; border: none; background: transparent;
+    color: var(--text-muted); font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+    cursor: pointer; white-space: nowrap; position: relative;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text-secondary); }
+  .tab-btn.active { color: #a5b4fc; border-bottom-color: #6366f1; }
+  .tab-btn .tab-icon { font-size: 14px; }
+
+  /* ── CONTENT AREA ── */
+  .settings-content {
+    margin-top: 104px; /* topbar + tabnav */
+    padding: 28px 28px 80px;
+    max-width: 1060px;
+    margin-left: auto; margin-right: auto;
+  }
+
+  /* Panel visibility */
+  .settings-panel-page { display: none; }
+  .settings-panel-page.active { display: block; }
+
+  /* ── GLASSMORPHISM CARDS ── */
+  .settings-section {
+    margin-bottom: 32px;
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px; overflow: hidden;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .settings-section:hover {
+    border-color: rgba(255,255,255,0.13);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+  }
+
+  .section-header {
+    background: rgba(0,0,0,0.22);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .section-header h2 {
+    margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.4px;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-header h2::before {
+    content: ''; display: block; width: 7px; height: 7px;
+    background: var(--gradient-primary); border-radius: 50%;
+    box-shadow: 0 0 8px rgba(59,130,246,0.7);
+  }
+
+  .section-body { padding: 24px; }
+
+  .field-description {
+    font-size: 13px; color: var(--text-secondary);
+    margin-bottom: 20px; line-height: 1.6; max-width: 820px;
+  }
+
+  /* ── SPECIAL: SCHEMA BUILDER ── */
+  #schema-builder-card {
+    border-color: rgba(99,102,241,0.3);
+    box-shadow: 0 0 24px rgba(99,102,241,0.05);
+  }
+  #schema-builder-card .section-header {
+    background: linear-gradient(90deg, rgba(99,102,241,0.1) 0%, rgba(0,0,0,0.2) 100%);
+  }
+
+  /* ── INPUTS & FORMS ── */
+  .enterprise-input {
+    background: var(--bg-input); border: 1px solid var(--border-subtle);
+    color: var(--text-primary); padding: 9px 12px; border-radius: 7px;
+    font-size: 13px; font-family: 'Inter', sans-serif; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+    box-sizing: border-box; box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .enterprise-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15), inset 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .enterprise-input::placeholder { color: var(--text-muted); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: var(--gradient-primary); color: white; border: none;
+    padding: 9px 18px; border-radius: 7px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 7px;
+    box-shadow: 0 3px 10px rgba(59,130,246,0.28);
+  }
+  .btn-primary:hover { background: var(--gradient-primary-hover); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(1px); }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.04); color: var(--text-primary);
+    border: 1px solid var(--border-subtle); padding: 9px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+
+  .btn-accent {
+    background: rgba(99,102,241,0.15); color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.3); padding: 9px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-accent:hover { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); }
+
+  .btn-danger {
+    background: transparent; color: var(--status-danger);
+    border: 1px solid transparent; padding: 7px 12px;
+    border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-danger:hover { background: var(--danger-bg); border-color: rgba(239,68,68,0.2); }
+
+  /* ── SCHEMA BUILDER CONTROLS ── */
+  .sb-action-bar {
+    display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;
+    padding: 14px 16px; background: rgba(0,0,0,0.18);
+    border: 1px dashed var(--border-subtle); border-radius: 8px;
+    align-items: center;
+  }
+  .sb-action-bar span {
+    font-size: 11px; color: var(--text-muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px; flex: 1;
+  }
+
+  /* ── DROPDOWN GROUP ── */
+  .dropdown-group {
+    display: flex; gap: 18px; margin-bottom: 24px;
+    background: rgba(0,0,0,0.18); padding: 18px; border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+  }
+  .dropdown-group > div { flex: 1; }
+  .dropdown-group label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: block; margin-bottom: 7px;
+  }
+
+  /* ── SAVE BAR ── */
+  .save-bar {
+    display: flex; justify-content: flex-end; align-items: center;
+    gap: 14px; padding-top: 20px; margin-top: 20px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .status-msg {
+    font-size: 12px; font-weight: 700; color: var(--status-success);
+    display: none; text-shadow: 0 0 8px rgba(16,185,129,0.3);
+  }
+  .status-saved {
+    font-size: 12px; font-weight: 700; color: var(--status-success);
+    display: none;
+  }
+
+  /* ── ENTERPRISE ROW ── */
+  .enterprise-row {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+  }
+  .enterprise-row > div { flex: 1; }
+
+  /* ── TYPOGRAPHY HELPERS ── */
+  h3 { font-size: 13px; color: var(--text-primary); margin: 0 0 10px; font-weight: 600; }
+
+  code { font-family: monospace; font-size: 11px; }
+
+  /* ── SECTION TITLE (legacy) ── */
+  .section-title {
+    font-size: 14px; font-weight: 700; padding: 16px 24px;
+    background: rgba(0,0,0,0.22); border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+</style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- TOP BAR -->
+  <div class="fsa-topbar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="fsa-brand">REDWOOD</span>
+      <span style="color:var(--border-subtle);">|</span>
+      <span style="font-weight:500; font-size:13px; color:var(--text-secondary);">Enterprise Architecture</span>
+    </div>
+    <button class="btn-secondary" id="back-btn" style="padding:5px 12px; font-size:12px;">← Back to Hub</button>
+  </div>
+
+  <!-- TAB NAVIGATION -->
+  <nav class="settings-tab-nav">
+    <button class="tab-btn active" data-tab="tab-domains">
+      <span class="tab-icon">🏢</span> Domains &amp; Entities
+    </button>
+    <button class="tab-btn" data-tab="tab-documents">
+      <span class="tab-icon">📄</span> Document Types
+    </button>
+    <button class="tab-btn" data-tab="tab-schema">
+      <span class="tab-icon">🗂</span> Schema Builder
+    </button>
+    <button class="tab-btn" data-tab="tab-metrics">
+      <span class="tab-icon">📐</span> Metrics &amp; Formulas
+    </button>
+    <button class="tab-btn" data-tab="tab-dashboard">
+      <span class="tab-icon">📊</span> Dashboard
+    </button>
+    <button class="tab-btn" data-tab="tab-ratios">
+      <span class="tab-icon">⚖️</span> Custom Ratios
+    </button>
+  </nav>
+
+  <div class="settings-content">
+
+    <!-- ══════════════════════════════════════════
+         TAB 1: DOMAINS & ENTITIES
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page active" id="tab-domains">
+
+      <!-- MASTER DOMAINS -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>1. Master Domains (Industries)</h2>
+        </div>
+        <div class="section-body">
+          <div class="field-description">Define the top-level industries (e.g., Manufacturing, SaaS, Retail) that users select when creating an FSA. These control the highest level of data separation.</div>
+          <div id="master-domains-container">Loading...</div>
+          <button class="btn-secondary" id="add-domain-btn" style="margin-top:14px;">+ Add Domain</button>
+          <div class="save-bar">
+            <span class="status-msg" id="domain-status">Saved ✓</span>
+            <button class="btn-primary" id="save-domains-btn">Save Domains</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER ENTITIES -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>2. Master Entity Types (Corporate Structures)</h2>
+        </div>
+        <div class="section-body">
+          <div class="field-description">Define legal entity types (e.g., Private Limited, LLC) and map their specific Equity line items for Balance Sheet generation.</div>
+          <div id="master-entities-container">Loading...</div>
+          <button class="btn-secondary" id="add-entity-btn" style="margin-top:14px;">+ Add Entity Type</button>
+          <div class="save-bar">
+            <span class="status-msg" id="entity-status">Saved ✓</span>
+            <button class="btn-primary" id="save-entities-btn">Save Entities</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-domains -->
+
+    <!-- ══════════════════════════════════════════
+         TAB 2: DOCUMENT TYPES
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page" id="tab-documents">
+
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>3. Master Document Types</h2>
+        </div>
+        <div class="section-body">
+          <div class="field-description">Register the core financial documents available across the system (e.g., Profit &amp; Loss, Balance Sheet, Cash Flow).</div>
+          <div id="master-documents-container">Loading...</div>
+          <button class="btn-secondary" id="add-document-type-btn" style="margin-top:14px;">+ Add Document Type</button>
+          <div class="save-bar">
+            <span class="status-msg" id="document-status">Saved ✓</span>
+            <button class="btn-primary" id="save-documents-btn">Save Document Types</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-documents -->
+
+    <!-- ══════════════════════════════════════════
+         TAB 3: SCHEMA BUILDER
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page" id="tab-schema">
+
+      <div class="settings-section" id="schema-builder-card">
+        <div class="section-header">
+          <h2 style="color:#a5b4fc;">4. Chart of Accounts Builder</h2>
+        </div>
+        <div class="section-body">
+          <div class="field-description">
+            Select a Document Type, then build its shared schema below. The same schema applies across all domains.
+            Add <strong>Sections</strong> for data-entry rows and <strong>Total Rows</strong> for calculated summaries.
+            <br><span style="color:#a5b4fc;">☰ Drag cards to reorder. Toggle a card between Section and Total with the → button.</span>
+          </div>
+
+          <div class="dropdown-group">
+            <div>
+              <label>Select Document Type</label>
+              <select id="schema-document-select" class="enterprise-input"><option>Loading...</option></select>
+            </div>
+          </div>
+
+          <div id="schema-builder-container">
+            <!-- Sections render here -->
+          </div>
+
+          <div class="sb-action-bar">
+            <span>Add a new row to the schema:</span>
+            <button class="btn-secondary" id="add-schema-section-btn">§ Add Section</button>
+            <button class="btn-accent" id="add-schema-total-btn">∑ Add Total Row</button>
+          </div>
+
+          <div class="save-bar">
+            <span class="status-msg" id="schema-status">Chart Saved ✓</span>
+            <button class="btn-primary" id="save-schema-btn">💾 Save Chart of Accounts</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-schema -->
+
+    <!-- ══════════════════════════════════════════
+         TAB 4: METRICS & FORMULAS
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page" id="tab-metrics">
+
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>5. Standard Metrics &amp; Formulas</h2>
+        </div>
+        <div class="section-body">
+          <div class="field-description">Define foundational metrics and their string-formula expressions. These power your Dashboard KPIs and Analysis tab.</div>
+          <div id="metrics-formulas-container">Loading...</div>
+          <button id="add-metric-formula-btn" class="btn-secondary" style="margin-top:14px;">+ Add Formula</button>
+
+          <div style="margin-top:28px; padding-top:22px; border-top:1px solid var(--border-subtle);">
+            <div id="confidence-thresholds-container"></div>
+          </div>
+
+          <span id="metric-formula-status" class="status-saved" style="display:none;">Saved ✓</span>
+          <div class="save-bar">
+            <span class="status-msg" id="metrics-save-status" style="display:none;">Saved ✓</span>
+            <button id="save-metrics-formulas-btn" class="btn-primary">Save Metrics</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-metrics -->
+
+    <!-- ══════════════════════════════════════════
+         TAB 5: DASHBOARD CONFIG
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page" id="tab-dashboard">
+
+      <div class="settings-section">
+        <div class="section-header"><h2>6. Executive Dashboard Layout</h2></div>
+        <div class="section-body">
+          <div class="field-description">Select the top KPIs and configure chart visuals for the Executive Dashboard view.</div>
+
+          <h3>Top KPI Cards (Max 8)</h3>
+          <div id="dashboard-kpis-container" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:32px;">Loading...</div>
+
+          <h3>Dashboard Charts</h3>
+          <div id="dashboard-charts-container">Loading...</div>
+          <button class="btn-secondary" id="add-chart-btn" style="margin-top:14px;">+ Add Chart Visual</button>
+
+          <div class="save-bar">
+            <span class="status-msg" id="dashboard-config-status">Saved ✓</span>
+            <button class="btn-primary" id="save-dashboard-config-btn">Save Dashboard Config</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-dashboard -->
+
+    <!-- ══════════════════════════════════════════
+         TAB 6: CUSTOM RATIOS
+    ══════════════════════════════════════════ -->
+    <div class="settings-panel-page" id="tab-ratios">
+
+      <div class="settings-section">
+        <div class="section-header"><h2>7. Custom Analytics Ratios</h2></div>
+        <div class="section-body">
+          <div class="field-description">Construct division-based ratios (Numerator ÷ Denominator) using any combination of metrics or schema sections.</div>
+          <div id="custom-ratios-container">Loading...</div>
+          <button class="btn-secondary" id="add-ratio-btn" style="margin-top:14px;">+ Add Custom Ratio</button>
+          <div class="save-bar">
+            <span class="status-msg" id="ratio-status">Saved ✓</span>
+            <button class="btn-primary" id="save-ratios-btn">Save Custom Ratios</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-ratios -->
+
+  </div><!-- /settings-content -->
+
+  <script type="module" src="js/settings.js"></script>
+</body>
+</html>

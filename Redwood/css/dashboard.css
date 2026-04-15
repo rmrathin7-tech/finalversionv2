@@ -1,0 +1,659 @@
+    /* ============================= */
+    /* ROOT VARIABLES */
+    /* ============================= */
+
+    :root {
+        --bg-primary: #0c0f14;
+        --bg-elevated: rgba(21, 26, 34, 0.75);
+        --bg-card: rgba(27, 33, 43, 0.85);
+
+        --accent: #b91c1c;
+        --accent-soft: #7f1d1d;
+
+        --text-main: #e6edf3;
+        --text-muted: #7d8590;
+
+        --border-subtle: rgba(255, 255, 255, 0.06);
+    }
+
+
+    /* ============================= */
+    /* GLOBAL */
+    /* ============================= */
+
+    body {
+        margin: 0;
+        font-family: 'Open Sans', sans-serif;
+        background: radial-gradient(circle at 20% 30%, #121720, #0c0f14 60%);
+        color: var(--text-main);
+        overflow: hidden;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 80px 80px;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+
+
+    .workspace::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 45% 35%,
+                rgba(255, 255, 255, 0.03),
+                transparent 60%);
+        z-index: -1;
+    }
+
+    /* ============================= */
+    /* AURORA BACKGROUND LAYER */
+    /* ============================= */
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 25% 40%,
+          rgba(185, 28, 28, 0.35),
+          transparent 50%),
+        radial-gradient(circle at 75% 45%,
+          rgba(0, 200, 160, 0.28),
+          transparent 55%),
+        radial-gradient(circle at 55% 75%,
+          rgba(70, 120, 255, 0.25),
+          transparent 60%);
+      filter: blur(15px);
+      opacity: 0.8;
+      will-change: transform;  /* ADD THIS - tells browser to optimize */
+    }
+
+
+    @keyframes auroraDrift {
+      0% {
+        transform: translate(0%, 0%) scale(1);
+      }
+      33% {
+        transform: translate(-6%, 4%) scale(1.08);
+      }
+      66% {
+        transform: translate(5%, -5%) scale(1.12);
+      }
+      100% {
+        transform: translate(0%, 0%) scale(1);
+      }
+    }
+
+
+
+
+
+
+    /* ============================= */
+    /* AMBIENT CANVAS LAYER */
+    /* ============================= */
+
+    #ambient-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* ============================= */
+    /* SPACE CANVAS - MOVING STARS */
+    /* ============================= */
+
+    #space-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        will-change: transform;
+        transform: translateZ(0);
+    }
+
+    .energy-lines {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background:
+            repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.018) 0px,
+                rgba(255,255,255,0.018) 1px,
+                transparent 1px,
+                transparent 140px
+            );
+        animation: energyFlow 18s linear infinite;
+    }
+
+    @keyframes energyFlow {
+        from { transform: translateX(-140px); }
+        to { transform: translateX(140px); }
+    } 
+
+    /* ============================= */
+    /* WORKSPACE LAYOUT */
+    /* ============================= */
+
+    .workspace {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        height: 100vh;
+    }
+
+
+    /* ============================= */
+    /* SIDEBAR */
+    /* ============================= */
+
+    .sidebar {
+        width: 260px;
+    background: rgba(21, 26, 34, 0.92);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 50px 28px;
+    }
+
+    .sidebar-top {
+        display: flex;
+        flex-direction: column;
+        gap: 0;  /* No gap, tight spacing */
+    }
+
+    .brand-block {
+        margin-bottom: 30px;  /* Space before search */
+    }
+
+
+
+    .brand-block h1 {
+        font-size: 22px;
+        letter-spacing: 3px;
+        margin: 0;
+    }
+
+    .brand-block span {
+        font-size: 12px;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+    }
+
+    .brand-accent {
+        width: 4px;
+        height: 50px;
+        background: var(--accent);
+        margin-bottom: 20px;
+    }
+
+
+    /* ============================= */
+    /* MAIN AREA */
+    /* ============================= */
+
+    .main-area {
+        flex: 1;
+        padding: 70px 120px 60px 140px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;  /* ADD - smooth iOS scroll */
+        transform: translateZ(0);  /* ADD - force GPU acceleration */
+
+    }
+
+
+
+
+    /* ============================= */
+    /* HEADER SECTION */
+    /* ============================= */
+
+    .workspace-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 45px;
+        position: relative;
+    }
+
+
+
+    .workspace-header::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -30px;
+        width: 120px;
+        height: 2px;
+        background: var(--accent);
+    }
+
+    .workspace-header h2 {
+        margin: 0;
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: 2px;
+    }
+
+
+    .workspace-header p {
+        margin: 8px 0 0;
+        color: var(--text-muted);
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+
+
+    /* ============================= */
+    /* CREATE INLINE */
+    /* ============================= */
+
+    .create-inline {
+        display: flex;
+        gap: 14px;
+    }
+
+    /* Input Box - Visible Background */
+    .create-inline input {
+        background: var(--bg-card);  /* Same as project cards */
+        border: 1px solid var(--border-subtle);
+        padding: 12px 16px;
+        color: var(--text-main);
+        border-radius: 8px;
+        outline: none;
+        transition: all 0.2s ease;
+        min-width: 280px;
+        font-size: 14px;
+    }
+
+    .create-inline input::placeholder {
+        color: var(--text-muted);
+    }
+
+    /* Glow When Typing - Same Style as Archive Hover */
+    .create-inline input:focus {
+        background: rgba(27, 33, 43, 0.95);  /* Slightly darker */
+        border-color: rgb(185, 28, 28);
+        box-shadow: 0 0 12px rgba(185, 28, 28, 0.4);  /* Same glow strength */
+    }
+
+    /* Create Button */
+    .create-inline button {
+        background: linear-gradient(
+            135deg,
+            rgba(185, 28, 28, 0.12),
+            rgba(127, 29, 29, 0.08)
+        );
+        border: 1.5px solid rgba(185, 28, 28, 0.6);  /* Thicker border */
+        color: rgb(185, 28, 28);  /* Brighter red text */
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 700;  /* Bolder text */
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        letter-spacing: 0.5px;  /* Slightly spaced text */
+    }
+
+    /* Stronger Hover Effect */
+    .create-inline button:hover {
+        background: linear-gradient(
+            135deg,
+            rgba(185, 28, 28, 0.20),
+            rgba(127, 29, 29, 0.15)
+        );
+        border-color: rgb(185, 28, 28);
+        color: rgb(255, 70, 70);  /* Brighter on hover */
+        box-shadow: 0 0 16px rgba(185, 28, 28, 0.5);  /* Stronger glow */
+    }
+
+    /* Press Feedback */
+    .create-inline button:active {
+        transform: scale(0.96);
+    }
+
+
+    /* ============================= */
+    /* PROJECT GRID */
+    /* ============================= */
+
+    .project-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 40px;
+    }
+
+
+    /* ============================= */
+    /* PROJECT CARD - CURVED & GLASSY */
+    /* ============================= */
+
+    .project-card {
+        background: linear-gradient(
+            135deg,
+            rgba(30, 36, 48, 0.7),
+            rgba(21, 26, 34, 0.85)
+        );
+        padding: 28px;
+        border-radius: 16px;  /* More curved */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        transition: transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+        will-change: transform;
+        box-shadow: 
+            0 4px 20px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);  /* Inner glow for glass effect */
+    }
+
+    /* Subtle inner highlight layer */
+    .project-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;  /* Match card radius */
+        pointer-events: none;
+        background: radial-gradient(circle at 15% 35%,
+            rgba(185, 28, 28, 0.30),
+            transparent 60%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .project-card:hover::after {
+        opacity: 1;
+    }
+
+    .project-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(185, 28, 28, 0.4);
+        box-shadow:
+            0 12px 35px rgba(0, 0, 0, 0.7),
+            0 0 14px rgba(185, 28, 28, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);  /* Brighter inner glow */
+    }
+
+    .project-card strong {
+        font-size: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    .project-card small {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+
+    /* ============================= */
+    /* DELETE BUTTON */
+    /* ============================= */
+
+    .delete-btn {
+        background: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 7px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .delete-btn:hover {
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 0 12px rgba(185, 28, 28, 0.5);
+    }
+
+    /*archive button */
+    /*archive button */
+    .archive-btn {
+        background: transparent;
+        border: 1px solid rgba(251, 146, 60, 0.4);  /* Amber border */
+        color: rgba(251, 146, 60, 0.8);
+        padding: 7px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .archive-btn:hover {
+        background: rgba(251, 146, 60, 0.15);  /* Subtle amber fill */
+        border-color: rgb(251, 146, 60);
+        color: rgb(251, 146, 60);
+        box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);  /* Strong amber glow */
+    }
+
+    .archive-btn:active {
+        transform: scale(0.95);  /* Press feedback */
+    }
+
+
+    /* ============================= */
+    /* LOGOUT BUTTON */
+    /* ============================= */
+
+    .ghost-btn {
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        padding: 10px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .ghost-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        box-shadow: 0 0 12px rgba(185, 28, 28, 0.3);
+    }
+
+
+
+
+    .archive-section {
+        margin-top: 80px;
+        opacity: 0.85;
+    }
+
+    .archive-section h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-muted);
+    }
+
+
+
+
+    /* ============================= */
+    /* ARCHIVE CARD BUTTONS */
+    /* ============================= */
+
+    .archive-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .restore-btn {
+      background: transparent;
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: rgba(34, 197, 94, 0.9);
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .restore-btn:hover {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgb(34, 197, 94);
+      color: rgb(34, 197, 94);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .perma-delete-btn {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: rgba(239, 68, 68, 0.8);
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .perma-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgb(239, 68, 68);
+      color: rgb(239, 68, 68);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+
+    /* ============================= */
+    /* ARCHIVE CARD HOVER EFFECTS */
+    /* ============================= */
+
+    .archive-section .project-card {
+      background: rgba(27, 33, 43, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      opacity: 0.85;
+      max-width: 220px;  /* ADD THIS - limits width */
+      font-size: 10px;    /* ADD THIS - slightly smaller text */
+    }
+
+    .archive-section .project-card strong {
+      font-size: 10px;  /* Smaller than active cards (18px) */
+    }
+
+
+    /* Amber glow layer for archived cards */
+    .archive-section .project-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      pointer-events: none;
+      background: radial-gradient(circle at 15% 35%,
+        rgba(251, 146, 60, 0.30),  /* Amber/Orange glow */
+        transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .archive-section .project-card:hover::after {
+      opacity: 1;
+    }
+
+    .archive-section .project-card:hover {
+      transform: translateY(-3px);
+      opacity: 1 !important;
+      border-color: rgba(251, 146, 60, 0.4);  /* Amber border */
+      box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.7),
+        0 0 14px rgba(251, 146, 60, 0.25),    /* Amber outer glow */
+        0 0 20px rgba(234, 179, 8, 0.12);     /* Yellow accent */
+    }
+
+    /* Active/Click state */
+    .archive-section .project-card:active {
+      transform: translateY(-1px) scale(0.99);
+    }
+
+    /* Button hover enhancement */
+    .archive-section .restore-btn:active,
+    .archive-section .perma-delete-btn:active {
+      transform: scale(0.95);
+    }
+
+    /*pause heavy animations while scrolling */
+    .main-area::-webkit-scrollbar-thumb:active ~ body::after,
+    .scrolling body::after {
+      animation-play-state: paused;
+    }
+
+
+    .sidebar-search {
+        width: 85%;
+        background: rgba(15, 20, 28, 0.6);
+        border: 1px solid var(--border-subtle);
+        padding: 12px 14px;
+        color: var(--text-main);
+        border-radius: 8px;
+        outline: none;
+        transition: all 0.2s ease;
+        font-size: 13px;
+        margin-top: 0;  /* No extra margin */
+    }
+
+    .sidebar-search::placeholder {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .sidebar-search:focus {
+        border-color: var(--accent);
+        background: rgba(15, 20, 28, 0.8);
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+    }
+
+/* ============================= */
+/* USERS PANEL */
+/* ============================= */
+
+.users-panel {
+    background: rgba(27, 33, 43, 0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.users-panel.hidden {
+    display: none;
+}
+
+.user-entry {
+    padding: 6px 4px;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.user-entry:last-child {
+    border-bottom: none;
+}
+
+.user-entry small {
+    display: block;
+    opacity: 0.6;
+    font-size: 11px;
+}

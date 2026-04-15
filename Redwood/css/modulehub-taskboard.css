@@ -1,0 +1,20 @@
+/* ── MODULE HUB TASKBOARD OVERRIDES ────────────────────── */
+
+/* The overlay uses the same .taskboard-overlay class
+   but sits inside module-hub so needs z-index bump */
+#hub-taskboard-overlay {
+  z-index: 2000;
+}
+
+#hub-taskboard-overlay .taskboard-header h2 {
+  font-size: 16px;
+}
+
+/* Columns container inside hub overlay */
+#hub-columns-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  height: 100%;
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First Connect Report | Redwood</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <script>
+    (function(){
+            const saved = localStorage.getItem("fc-theme") || "dark-mode";
+            document.addEventListener("DOMContentLoaded", function(){
+                document.body.classList.remove("light-mode", "dark-mode");
+                document.body.classList.add(saved);
+            });
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/im.css">
+    <link rel="stylesheet" href="css/fc.css">
+    <link rel="stylesheet" href="css/taskboard.css">
+    <link rel="stylesheet" href="css/modulehub-taskboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+</head>
+
+<body class="im-view">
+
+    <div class="im-layout">
+
+        <!-- Sidebar -->
+        <aside class="im-sidebar">
+            <div class="im-brand">
+                RED<span>WOOD</span>
+            </div>
+
+            <button id="exit-btn" class="sidebar-exit-btn">
+                ← Exit to Module Hub
+            </button>
+
+            <button id="comments-toggle-btn" class="sidebar-exit-btn">
+                💬 Comments
+            </button>
+
+            <nav class="im-nav" id="im-nav"></nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="nav-group">
+                <div class="nav-item nav-parent" id="collab-toggle">
+                    🟢 Live Collaborators
+                </div>
+                <div class="nav-children hidden" id="collab-list" style="display:none">
+                </div>
+            </div>
+
+            <div class="im-status">
+                <div class="status-dot"></div>
+                <span>Draft</span>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="im-main">
+
+            <!-- Header -->
+            <header class="im-header">
+                <div class="im-title-block-wrapper">
+                    <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">☰</button>
+                    <div class="im-title-block">
+                        <h1 id="im-title">Untitled FC</h1>
+                        <span class="im-meta">First Connect Report</span>
+                    </div>
+                </div>
+
+                <div class="im-actions">
+                    <div class="theme-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <label for="theme-toggle" class="switch-slider"></label>
+                    </div>
+                    <div class="im-button-group">
+                        <button class="im-btn secondary" id="hub-taskboard-btn">🗂 Task Board</button>
+                        <button class="im-btn secondary" id="preview-toggle">Preview</button>
+                        <button class="im-btn secondary" id="export-json-btn">Export JSON</button>
+                        <button class="im-btn secondary" id="versions-btn">Versions</button>
+                        <button class="im-btn primary" id="commit-btn">Commit Version</button>
+                        <button class="im-btn secondary" id="export-pdf-btn">Export PDF</button>
+                        <a href="fc-settings.html?schema=fc" class="im-btn secondary" id="schema-btn">⚙ Schema</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Editor Canvas -->
+            <section class="im-canvas" id="im-canvas">
+            </section>
+
+        </main>
+
+        <!-- Comments Panel -->
+        <div id="comments-panel">
+            <div class="comments-header">
+                <span>Comments</span>
+                <button class="close-comments-btn" id="close-comments-btn">×</button>
+            </div>
+            <div id="comments-list">No comments yet</div>
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="history-modal" class="history-modal hidden">
+        <div class="history-content">
+            <h3>Change History</h3>
+            <div id="history-list"></div>
+            <button id="close-history">Close</button>
+        </div>
+    </div>
+
+    <div id="versions-modal" class="history-modal hidden">
+        <div class="history-content">
+            <h3>Versions</h3>
+            <div id="versions-list"></div>
+            <button id="close-versions">Close</button>
+        </div>
+    </div>
+
+    <!-- Comment Box -->
+    <div id="comment-float-btn">💬 Add Comment</div>
+
+    <div id="comment-box">
+        <textarea id="comment-input" placeholder="Write comment..."></textarea>
+        <div id="assign-users-section" style="margin-top:10px">
+            <div style="font-size:11px;font-weight:700;opacity:0.6;margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase">Assign to</div>
+            <div id="assign-users-list" style="max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:12px;opacity:0.4">Loading users...</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="comment-send-btn">Send</button>
+            <button id="comment-cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="hub-taskboard-overlay" class="taskboard-overlay hidden">
+        <div class="taskboard-header">
+            <h2>🗂 Task Board — <span id="hub-tb-project-name"></span></h2>
+            <button id="hub-taskboard-close" class="taskboard-close-btn">✕</button>
+        </div>
+        <div class="taskboard-body">
+            <div id="hub-columns-container" class="columns-container"></div>
+            <button id="hub-add-column-btn" class="add-column-btn">+ Add Column</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.min.js"></script>
+    <script type="module" src="js/modulehub-taskboard.js"></script>
+    <script type="module" src="js/fc.js"></script>
+
+</body>
+</html>

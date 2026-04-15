@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Redwood Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/taskboard.css">
+</head>
+
+<body>
+    <canvas id="ambient-canvas"></canvas>
+    <canvas id="space-canvas"></canvas>
+    <div class="energy-lines"></div>
+
+    <div class="workspace">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-accent"></div>
+                <div class="brand-block">
+                    <h1>REDWOOD</h1>
+                    <span>Strategic Workspace</span>
+                </div>
+
+                <!-- Search right below branding -->
+                <input
+                    type="text"
+                    id="global-search"
+                    placeholder="🔍 Search memos..."
+                    class="sidebar-search"
+                />
+
+                <!-- Task Board Button -->
+                <button id="taskboard-btn" class="ghost-btn" style="width:100%; margin-top:12px;">
+                    🗂 Task Board
+                </button>
+            </div>
+
+            <div style="margin-top:30px;">
+                <button id="users-toggle" class="ghost-btn" style="width:100%; margin-bottom:12px;">
+                    Users
+                </button>
+
+                <div id="users-panel" class="users-panel hidden"></div>
+
+                <button id="logout-btn" class="ghost-btn" style="width:100%;">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-area">
+
+            <div class="workspace-header">
+                <div>
+                    <h2>Investment Memos</h2>
+                    <p>Collaborative Intelligence Layer</p>
+                </div>
+
+                <div class="create-inline">
+                    <input type="text" id="new-project-name" placeholder="Create new memo...">
+                    <button id="create-project-btn">Create</button>
+                </div>
+            </div>
+
+            <div id="project-list" class="project-grid"></div>
+
+            <section class="archive-section">
+                <h3>Archived</h3>
+                <div id="archive-list" class="project-grid"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Task Board Overlay -->
+    <div id="taskboard-overlay" class="taskboard-overlay hidden">
+        <div class="taskboard-header">
+            <h2>🗂 Task Board</h2>
+            <button id="taskboard-close" class="taskboard-close-btn">✕</button>
+        </div>
+        <div class="taskboard-body">
+            <div id="columns-container" class="columns-container"></div>
+            <button id="add-column-btn" class="add-column-btn">+ Add Column</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/taskboard.js"></script>
+
+</body>
+
+</html>

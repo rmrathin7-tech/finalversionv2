@@ -1,0 +1,137 @@
+/* ── FIX FOR BLEEDING DASHBOARD BACKGROUND & GRID ── */
+body.im-view {
+    background: var(--bg-base, #0B0F19) !important;
+    background-image: none !important;
+}
+
+/* This specifically targets and hides the bleeding grid lines from dashboard.css */
+body.im-view::before, 
+body.im-view::after {
+    display: none !important;
+}
+
+.im-layout {
+    background-color: transparent !important;
+}
+/* ════════════════════════════════════════════════════
+   FC.CSS — First Connect Report
+   Inherits everything from im.css
+   Only FC-specific overrides here
+════════════════════════════════════════════════════ */
+
+/* ── FC Meta Label in Header ── */
+.im-meta {
+  color: var(--text-muted);
+}
+
+/* ── Company Details Table ── */
+.im-table textarea.editor-field {
+  min-height: 36px;
+  resize: vertical;
+  padding: 8px 10px;
+  line-height: 1.5;
+}
+
+/* ── Section 1 table row hover ── */
+.im-table tbody tr:hover td {
+  background: var(--bg-input);
+  transition: background 0.15s ease;
+}
+
+/* ── Cap Table ── */
+#cap-table-body td {
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+#cap-table-body input.editor-field {
+  min-height: unset;
+  padding: 6px 10px;
+}
+
+/* ── Competition Blocks ── */
+.comp-block {
+  transition: border-color 0.2s ease;
+}
+
+.comp-block:hover {
+  border-color: var(--accent) !important;
+}
+
+/* ── Founder Blocks ── */
+.founder-block {
+  transition: border-color 0.2s ease;
+}
+
+.founder-block:hover {
+  border-color: var(--accent) !important;
+}
+
+/* ── Bank Statement Blocks ── */
+.bank-block {
+  transition: border-color 0.2s ease;
+}
+
+.bank-block:hover {
+  border-color: var(--accent) !important;
+}
+
+/* ── SME / Financial Yes/No Select ── */
+#sme-yn-select,
+#fi-yn-select {
+  width: auto;
+  min-width: 140px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+/* ── Inline Year Inputs (Section 13) ── */
+.inline-year {
+  width: 80px !important;
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* ── Active Tab Button ── */
+.small-btn.active-tab {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* ── Guide Box Pre Text ── */
+.guide-box pre {
+  white-space: pre-wrap;
+  font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  line-height: 1.7;
+  color: var(--guide-text);
+}
+
+/* ── Preview FC-specific ── */
+.preview-wrapper .preview-section-title {
+  color: #166534;
+  border-bottom-color: #bbf7d0;
+}
+
+/* ── FC Brand accent override (optional — keep burgundy or go green) ── */
+/* Uncomment below if you want FC to use green accent instead of burgundy */
+/*
+.light-mode {
+  --accent:        #166534;
+  --accent-bright: #15803d;
+  --accent-glow:   rgba(22,101,52,0.25);
+}
+*/
+/* Force the FC report to have a solid background */
+body.im-view {
+    background-image: none !important;
+    background-color: #0c0f14 !important;
+}
+
+.im-layout {
+    background-color: #0c0f14;
+}

@@ -1,0 +1,13 @@
+/* ================================================
+   VARIABLES.CSS
+   ================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+
+:root {
+  --accent:            #b91c1c;
+  --accent-bright:     #dc2626;
+  --accent-soft:       #7f1d1d;
+  --accent-glow:       rgba(185, 28, 28, 0.40);
+  --accent-glow-soft:  rgba(185, 28, 28, 0.12);
+}

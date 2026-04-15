@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redwood Access</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Your CSS -->
+    <link rel="stylesheet" href="css/login.css">
+
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <div class="left-panel">
+            <div class="brand">
+                <div class="accent-line"></div> <!-- the red line -->
+                <h1>REDWOOD</h1>
+                <p>Strategic Intelligence System</p>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="login-block">
+                <h2>Secure Access</h2>
+
+                <input type="email" id="login-email" placeholder="Corporate Email">
+                <input type="password" id="login-password" placeholder="Password">
+
+                <button id="login-btn">ENTER SYSTEM</button>
+
+                <p id="auth-error" class="hidden"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="js/firebase.js"></script>
+    <script type="module" src="js/auth.js"></script>
+
+
+</body>
+
+</html>
