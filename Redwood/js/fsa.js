@@ -644,11 +644,11 @@ document.getElementById('pdf-import-input').addEventListener('change', async (e)
             formData.append(`${docDef.key}_schema`, JSON.stringify(sections));
         });
 
-        const res = await fetch('https://rathin-07-redwood-extractor.hf.space/extract', {
-            method: 'POST',
-            body: formData,
-            signal: pdfImportAbortController.signal  // ✅ wired
-        });
+        const res = await fetch(`https://YOUR-APP-NAME.onrender.com/analyze-pipeline`, {
+    method: 'POST',
+    body: formData,
+    signal: pdfImportAbortController.signal
+});
 
         clearTimeout(timeoutId);
 
