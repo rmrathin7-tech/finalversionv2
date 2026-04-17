@@ -515,7 +515,7 @@ export function initDataEntry({
             input.addEventListener("focus", () => {
                 // Show raw number for easy editing
                 const raw = input.dataset.raw || '0';
-                input.value = raw === '0' ? '' : raw;
+                input.value = parseFloat(raw) === 0 ? '' : raw;
                 input.select();
             });
 

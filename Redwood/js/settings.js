@@ -1254,7 +1254,7 @@ async function saveMetricsFormulas() {
     // (those that still have the auto-assigned `metric_<timestamp>` placeholder key).
     // If the user explicitly set a key via the Advanced panel, leave it unchanged.
     if (m.key.startsWith('metric_')) {
-      m.key = m.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '') || m.key;
+      m.key = m.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
     }
     // Ensure key is never empty
     if (!m.key) m.key = `metric_${Date.now()}`;

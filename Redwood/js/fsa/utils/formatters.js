@@ -64,7 +64,10 @@ export function applyLiveIndianFormat(input) {
     const rawBeforeCursor    = rawChars.slice(0, cursorPos - commasBefore);
     const intBeforeCursor    = rawBeforeCursor.split('.')[0];
     const newCommasBefore    = (formatIndianInteger(intBeforeCursor).match(/,/g) || []).length;
-    const newCursor          = cursorPos - commasBefore + newCommasBefore;
+    const newCursor          = Math.min(
+        cursorPos - commasBefore + newCommasBefore,
+        input.value.length
+    );
     try { input.setSelectionRange(newCursor, newCursor); } catch (_) {}
 
     return parseFloat(rawChars) || 0;
