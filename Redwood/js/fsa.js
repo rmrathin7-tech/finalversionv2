@@ -862,10 +862,11 @@ document.getElementById('pdf-import-input').addEventListener('change', async (e)
             updateDocRef: updateDoc,
             projectId: currentProjectId,
             fsaId: currentFsaId,
+            // legacy fallbacks kept for safety; new code uses configSchemas.documents
             pnlSchema: configSchemas.documents.find(d => d.key === 'pnl') || configSchemas.documents[0],
             balanceSheetSchema: configSchemas.documents.find(d => d.key === 'bs') || configSchemas.documents[1],
             customRatios: configSchemas.customRatios,
-            configSchemas 
+            configSchemas
         });
 
         if (analysisModule && analysisModule.getHtmlTemplate) {
