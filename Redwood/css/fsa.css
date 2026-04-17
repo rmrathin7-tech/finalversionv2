@@ -1487,7 +1487,8 @@ tr:has(.ult-add-select) td {
   border-top: 1px solid var(--border) !important;
 }
 
-[data-entry-area] input[type="number"] {
+[data-entry-area] input[type="number"],
+[data-entry-area] input[type="text"].ult-input {
   background: var(--bg-input) !important;
   border: 1px solid var(--border) !important;
   border-radius: 6px;
@@ -1501,7 +1502,8 @@ tr:has(.ult-add-select) td {
   -moz-appearance: textfield;
 }
 
-[data-entry-area] input[type="number"]:focus {
+[data-entry-area] input[type="number"]:focus,
+[data-entry-area] input[type="text"].ult-input:focus {
   border-color: var(--border-focus) !important;
   background: var(--bg-input-focus) !important;
   box-shadow: 0 0 0 3px var(--accent-glow-sm) !important;
@@ -3397,4 +3399,156 @@ conflict-modal button {
     background: #1e2430; 
     color: #e2e8f0;
     padding: 8px;
+}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 4: Indian Formatting · Year Separators · Statements UI
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 51. YEAR COLUMN SEPARATORS (Data Entry + Statements) ───── */
+
+/* Visual border between each year column in the data-entry table */
+.ultimate-fsa-table thead th:not(:first-child),
+.ultimate-fsa-table tbody td:not(:first-child) {
+  border-left: 1px solid var(--border);
 }
+
+/* Slightly stronger separator for the first year column */
+.ultimate-fsa-table thead th:nth-child(2),
+.ultimate-fsa-table tbody td:nth-child(2) {
+  border-left: 2px solid var(--border-strong);
+}
+
+/* ─── 52. FIELD ROW SEPARATORS (non-sub items) ───────────────── */
+
+/* Add a more visible bottom border to top-level (non-sub) item rows
+   to improve scannability between line items */
+.ult-row-item:not(.ult-sub) td {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Sub-items stay with finer separator */
+.ult-row-item.ult-sub td {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ─── 53. STATEMENT YEAR SEPARATORS ─────────────────────────── */
+
+/* Applied via JS to year-data cells (idx > 0) */
+.stmt-year-sep {
+  border-left: 1px solid var(--border) !important;
+}
+
+.statement-table th.stmt-year-sep {
+  border-left: 2px solid var(--border-strong) !important;
+}
+
+/* Data-entry year separator (class-based, for JS injection) */
+.ult-year-sep {
+  border-left: 1px solid var(--border) !important;
+}
+
+.ultimate-fsa-table thead th.ult-year-sep {
+  border-left: 2px solid var(--border-strong) !important;
+}
+
+/* ─── 54. STATEMENT UI — DATA-ENTRY ALIGNMENT ────────────────── */
+
+/* Statement block now uses the same card conventions as data-entry */
+.statement-block {
+  margin-bottom: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.statement-block h3 {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  padding: 14px 20px;
+  background: var(--table-header-bg);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Statement table — match data-entry header sizing */
+.statement-table thead th {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+
+/* Row hover consistent with data-entry */
+.statement-table tr:not(.statement-section):not(.statement-total):hover td {
+  background: var(--row-hover) !important;
+}
+
+/* Statement group row — mirrors .ult-row-group */
+.statement-group td {
+  background: var(--bg-base) !important;
+  color: var(--text) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-top: 2px solid var(--border) !important;
+}
+
+/* ─── 55. KPI SETTINGS — ADVANCED TOGGLE ─────────────────────── */
+
+/* The advanced details/summary panel for key/dataPath */
+.kpi-advanced-panel {
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.kpi-advanced-summary {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-advanced-summary::-webkit-details-marker { display: none; }
+
+.kpi-advanced-summary::before {
+  content: '▶';
+  font-size: 8px;
+  transition: transform 0.2s;
+}
+
+details[open] .kpi-advanced-summary::before {
+  transform: rotate(90deg);
+}
+
+.kpi-advanced-summary:hover { color: var(--text-accent); }
+
+/* ─── 56. TEXT INPUTS (live Indian formatting) ───────────────── */
+
+/* Text inputs used in place of number inputs for Indian formatting */
+.ult-input[type="text"] {
+  text-align: right;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+

@@ -1,5 +1,5 @@
 // js/fsa/ui/dataEntry.js
-import { formatValue } from "../utils/formatters.js";
+import { formatValue, applyLiveIndianFormat, parseFormattedNumber, formatIN } from "../utils/formatters.js";
 import { buildFinancialModel } from "../core/engine.js";
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -152,7 +152,7 @@ export function initDataEntry({
                     <thead>
                         <tr>
                             <th style="width:35%; min-width:250px;">Particulars</th>
-                            ${years.map(y => `<th style="min-width:90px; padding:10px;">${y}</th>`).join("")}
+                            ${years.map((y, idx) => `<th style="min-width:90px; padding:10px;" class="${idx === 0 ? 'ult-year-first' : 'ult-year-sep'}">${y}</th>`).join("")}
                         </tr>
                     </thead>
                     <tbody>`;
@@ -160,9 +160,9 @@ export function initDataEntry({
         function renderTotalRow(title, key, textColor, bgColor) {
             let row = `<tr class="ult-row-total" style="background:${bgColor} !important;">
                 <td style="color:${textColor} !important;">${title}</td>`;
-            years.forEach(year => {
+            years.forEach((year, idx) => {
                 const val = getLocalTotal(key, year, store);
-                row += `<td class="ult-tot-val">
+                row += `<td class="ult-tot-val ${idx === 0 ? 'ult-year-first' : 'ult-year-sep'}">
                     <span style="color:#ffffff !important;"
                           data-total-key="${key}"
                           data-year="${year}">
@@ -297,21 +297,25 @@ export function initDataEntry({
                                 data-delete="${type}__${key}__${dataKey}"
                                 title="Delete Item">✕</button>
                     </td>`;
-                years.forEach(year => {
+                years.forEach((year, idx) => {
+                    const yearCls = idx === 0 ? 'ult-year-first' : 'ult-year-sep';
                     if (hasSubs) {
                         // Renders a disabled/empty state instead of an input box for parent items
-                        rowHtml += `<td style="text-align: center; vertical-align: middle; color: var(--text-muted); opacity: 0.5;">—</td>`;
+                        rowHtml += `<td class="${yearCls}" style="text-align: center; vertical-align: middle; color: var(--text-muted); opacity: 0.5;">—</td>`;
                     } else {
                         const value = store[key][year]?.[dataKey] ?? 0;
-                        rowHtml += `<td>
-                            <input type="number"
+                        const displayVal = value ? formatIN(value, 2) : '';
+                        rowHtml += `<td class="${yearCls}">
+                            <input type="text"
+                                   inputmode="decimal"
                                    class="ult-input"
-                                   value="${value || ''}"
+                                   value="${displayVal}"
                                    placeholder="0"
                                    data-type="${type}"
                                    data-key="${key}"
                                    data-item="${dataKey}"
-                                   data-year="${year}">
+                                   data-year="${year}"
+                                   data-raw="${value || 0}">
                         </td>`;
                     }
                 });
@@ -505,19 +509,26 @@ export function initDataEntry({
             });
         });
 
-        // All number inputs
-        document.querySelectorAll("#data-entry-area input[type='number']").forEach(input => {
+        // All numeric text inputs
+        document.querySelectorAll("#data-entry-area input.ult-input").forEach(input => {
 
             input.addEventListener("focus", () => {
-                if (input.value === "0") input.value = "";
+                // Show raw number for easy editing
+                const raw = input.dataset.raw || '0';
+                input.value = raw === '0' ? '' : raw;
+                input.select();
             });
 
             input.addEventListener("input", () => {
+                // Apply live Indian comma formatting and get clean value
+                const value = applyLiveIndianFormat(input);
+
                 const key   = input.dataset.key;
                 const item  = input.dataset.item;
                 const year  = input.dataset.year;
-                const value = Number(input.value || 0);
                 const data  = currentFsaData.data;
+
+                input.dataset.raw = String(value);
 
                 // Skip if unchanged
                 if (data[type]?.[key]?.[year]?.[item] === value) return;
@@ -580,7 +591,9 @@ export function initDataEntry({
             });
 
             input.addEventListener("blur", () => {
-                if (input.value === "") input.value = "0";
+                const raw = parseFormattedNumber(input.value);
+                input.dataset.raw = String(raw);
+                input.value = raw !== 0 ? formatIN(raw, 2) : '';
             });
         });
     }

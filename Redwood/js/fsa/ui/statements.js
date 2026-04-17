@@ -1,6 +1,6 @@
 // js/fsa/ui/statements.js
 import { buildFinancialModel } from "../core/engine.js";
-import { formatValue } from "../utils/formatters.js";
+import { formatValue, formatIN } from "../utils/formatters.js";
 
 export function initStatements({
     currentFsaData,
@@ -93,26 +93,34 @@ export function initStatements({
 
         canvas.innerHTML = `
             <div class="fsa-card">
-                <h2>Statements</h2>
-                <button id="full-view-btn" class="fsa-btn">Full</button>
-                <button id="summary-view-btn" class="fsa-btn">Summary</button>
-                <div id="statement-area" style="margin-top:20px;"></div>
+                <div class="fsa-card-header">
+                    <span class="fsa-card-title">📊 Financial Statements</span>
+                    <div class="fsa-card-actions">
+                        <button id="full-view-btn" class="btn-secondary">Full View</button>
+                        <button id="summary-view-btn" class="btn-secondary">Summary</button>
+                    </div>
+                </div>
+                <div id="statement-area" style="margin-top:8px;"></div>
             </div>
         `;
 
-        document.getElementById("full-view-btn").onclick = () => renderFullStatements(years);
+        document.getElementById("full-view-btn").onclick   = () => renderFullStatements(years);
         document.getElementById("summary-view-btn").onclick = () => renderSummaryStatements(years);
     }
 
     // Helper to generate a unified table structure for both P&L and BS
     function buildStatementTableHTML(title, structure, docKey, dataStore, years) {
+        const yearHeaders = years.map((y, idx) =>
+            `<th class="stmt-year-col${idx > 0 ? ' stmt-year-sep' : ''}">${y}</th>`
+        ).join("");
+
         let html = `
             <div class="statement-block">
             <h3>${title}</h3>
             <table class="statement-table">
             <tr>
                 <th style="width:40%;">Particulars</th>
-                ${years.map(y=>`<th>${y}</th>`).join("")}
+                ${yearHeaders}
             </tr>
         `;
 
@@ -124,9 +132,9 @@ export function initStatements({
 
             if (item.type === "total") {
                 html += `<tr class="statement-total"><td>${item.title}</td>`;
-                years.forEach(year => {
+                years.forEach((year, idx) => {
                     const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
-                    html += `<td>${formatValue(item.key, model[item.key], configSchemas)}</td>`;
+                    html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${formatValue(item.key, model[item.key], configSchemas)}</td>`;
                 });
                 html += `</tr>`;
                 return;
@@ -138,10 +146,10 @@ export function initStatements({
                 // Render Section Header with calculated totals
                 html += `<tr class="statement-section" style="background: rgba(255,255,255,0.02);">
                     <td><strong>${item.title}</strong></td>`;
-                years.forEach(year => {
+                years.forEach((year, idx) => {
                     const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
                     const val = model[key] ?? model[`${docKey}__${key}`] ?? 0;
-                    html += `<td><strong>${val !== 0 ? formatValue(key, val, configSchemas) : "—"}</strong></td>`;
+                    html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}"><strong>${val !== 0 ? formatValue(key, val, configSchemas) : "—"}</strong></td>`;
                 });
                 html += `</tr>`;
 
@@ -227,7 +235,7 @@ export function initStatements({
                     html += `<tr>
                         <td class="line-item" style="${paddingStyle}">${prefix}${displayName}</td>`;
                     
-                    years.forEach(year => {
+                    years.forEach((year, idx) => {
                         let val = 0;
                         if (hasSubs) {
                             // Sum up the children automatically for the parent row
@@ -238,12 +246,12 @@ export function initStatements({
                             val = dataStore[key]?.[year]?.[info.dataKey] || 0;
                         }
 
-                        const displayVal = val !== 0 ? val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
+                        const displayVal = val !== 0 ? formatIN(val, 2) : '-';
 
                         if (hasSubs) {
-                            html += `<td><strong>${displayVal}</strong></td>`;
+                            html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}"><strong>${displayVal}</strong></td>`;
                         } else {
-                            html += `<td>${displayVal}</td>`;
+                            html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${displayVal}</td>`;
                         }
                     });
                     html += `</tr>`;
@@ -254,9 +262,9 @@ export function initStatements({
                     item.totals.forEach(inlineTotal => {
                         html += `<tr class="statement-total" style="font-size: 0.9em; opacity: 0.9;">
                             <td style="padding-left: 1rem;">↳ ${inlineTotal.title}</td>`;
-                        years.forEach(year => {
+                        years.forEach((year, idx) => {
                             const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
-                            html += `<td>${formatValue(inlineTotal.key, model[inlineTotal.key], configSchemas)}</td>`;
+                            html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${formatValue(inlineTotal.key, model[inlineTotal.key], configSchemas)}</td>`;
                         });
                         html += `</tr>`;
                     });
@@ -285,13 +293,17 @@ export function initStatements({
     function renderSummaryStatements(years) {
         const area = document.getElementById("statement-area");
 
+        const yearHeaders = years.map((y, idx) =>
+            `<th class="stmt-year-col${idx > 0 ? ' stmt-year-sep' : ''}">${y}</th>`
+        ).join("");
+
         let html = `
             <div class="statement-block">
             <h3>Summary — Profit & Loss</h3>
             <table class="statement-table">
             <tr>
                 <th>Metric</th>
-                ${years.map(y => `<th>${y}</th>`).join("")}
+                ${yearHeaders}
             </tr>
         `;
 
@@ -299,20 +311,20 @@ export function initStatements({
             if (item.type === "section" || item.type === "total") {
                 const isTotal = item.type === "total";
                 html += `<tr class="${isTotal ? "statement-total" : ""}"><td>${item.title}</td>`;
-                years.forEach(year => {
+                years.forEach((year, idx) => {
                     const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
                     const val = model[item.key];
-                    html += `<td>${val != null ? formatValue(item.key, val, configSchemas) : "—"}</td>`;
+                    html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${val != null ? formatValue(item.key, val, configSchemas) : "—"}</td>`;
                 });
                 html += `</tr>`;
                 
                 if (item.type === "section" && Array.isArray(item.totals)) {
                      item.totals.forEach(inlineTotal => {
                         html += `<tr class="statement-total" style="font-size: 0.9em; opacity: 0.9;"><td>&nbsp;&nbsp;↳ ${inlineTotal.title}</td>`;
-                        years.forEach(year => {
+                        years.forEach((year, idx) => {
                             const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
                             const val = model[inlineTotal.key];
-                            html += `<td>${val != null ? formatValue(inlineTotal.key, val, configSchemas) : "—"}</td>`;
+                            html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${val != null ? formatValue(inlineTotal.key, val, configSchemas) : "—"}</td>`;
                         });
                         html += `</tr>`;
                     });
@@ -328,7 +340,7 @@ export function initStatements({
             <table class="statement-table">
             <tr>
                 <th>Metric</th>
-                ${years.map(y => `<th>${y}</th>`).join("")}
+                ${yearHeaders}
             </tr>
         `;
 
@@ -336,20 +348,20 @@ export function initStatements({
             if (item.type === "section" || item.type === "total") {
                 const isTotal = item.type === "total";
                 html += `<tr class="${isTotal ? "statement-total" : ""}"><td>${item.title}</td>`;
-                years.forEach(year => {
+                years.forEach((year, idx) => {
                     const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
                     const val = model[item.key];
-                    html += `<td>${val != null ? formatValue(item.key, val, configSchemas) : "—"}</td>`;
+                    html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${val != null ? formatValue(item.key, val, configSchemas) : "—"}</td>`;
                 });
                 html += `</tr>`;
 
                 if (item.type === "section" && Array.isArray(item.totals)) {
                      item.totals.forEach(inlineTotal => {
                         html += `<tr class="statement-total" style="font-size: 0.9em; opacity: 0.9;"><td>&nbsp;&nbsp;↳ ${inlineTotal.title}</td>`;
-                        years.forEach(year => {
+                        years.forEach((year, idx) => {
                             const model = buildFinancialModel(currentFsaData.data, year, reclassMap, configSchemas);
                             const val = model[inlineTotal.key];
-                            html += `<td>${val != null ? formatValue(inlineTotal.key, val, configSchemas) : "—"}</td>`;
+                            html += `<td class="${idx > 0 ? 'stmt-year-sep' : ''}">${val != null ? formatValue(inlineTotal.key, val, configSchemas) : "—"}</td>`;
                         });
                         html += `</tr>`;
                     });
