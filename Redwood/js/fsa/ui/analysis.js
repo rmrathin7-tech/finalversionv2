@@ -38,6 +38,14 @@ export function initAnalysis({
     const effectiveCustomRatios = configSchemas?.customRatios ?? customRatios ?? [];
 
     // ── Helpers ───────────────────────────────────────────────────
+
+    /** Compute period-over-period % change; returns null when prev is 0 */
+    function calcYoY(val, prev) {
+        return prev !== 0 ? ((val - prev) / Math.abs(prev)) * 100 : null;
+    }
+
+    function yoyCls(yoy) { return yoy === null ? '' : yoy >= 0 ? 'aw2-pos' : 'aw2-neg'; }
+
     function getDocSource(sectionKey) {
         for (const d of allDocSchemas) {
             if ((d?.structure || []).find(s => s.key === sectionKey)) return d.key;
@@ -512,17 +520,15 @@ export function initAnalysis({
                 } else if (mode === 'yoy') {
                     if (i === 0) { html += '<td class="aw2-base-cell">' + fmt + '</td>'; }
                     else {
-                        const prev = rawVals[i-1];
-                        const yoy  = prev !== 0 ? ((val - prev) / Math.abs(prev)) * 100 : null;
-                        const cls  = yoy === null ? '' : yoy >= 0 ? 'aw2-pos' : 'aw2-neg';
+                        const yoy = calcYoY(val, rawVals[i-1]);
+                        const cls = yoyCls(yoy);
                         html += '<td class="' + cls + '">' + (yoy === null ? '\u2014' : (yoy >= 0 ? '+' : '') + yoy.toFixed(1) + '%') + '</td>';
                     }
                 } else {
                     if (i === 0) { html += '<td>' + fmt + '</td>'; }
                     else {
-                        const prev  = rawVals[i-1];
-                        const yoy   = prev !== 0 ? ((val - prev) / Math.abs(prev)) * 100 : null;
-                        const cls   = yoy === null ? '' : yoy >= 0 ? 'aw2-pos' : 'aw2-neg';
+                        const yoy   = calcYoY(val, rawVals[i-1]);
+                        const cls   = yoyCls(yoy);
                         const badge = yoy === null ? '' : '<span class="aw2-yoy-badge ' + cls + '">' + (yoy >= 0 ? '\u25b2' : '\u25bc') + Math.abs(yoy).toFixed(1) + '%</span>';
                         html += '<td>' + fmt + ' ' + badge + '</td>';
                     }
@@ -553,7 +559,7 @@ export function initAnalysis({
             }
             if (isYoY || isBoth) {
                 datasets.push({ label: label + ' (YoY %)',
-                    data: rawVals.map((v, i) => { if (i === 0) return null; const p = rawVals[i-1]; return p !== 0 ? ((v-p)/Math.abs(p))*100 : null; }),
+                    data: rawVals.map((v, i) => { if (i === 0) return null; return calcYoY(v, rawVals[i-1]); }),
                     type: 'line', borderColor: color, backgroundColor: 'transparent',
                     borderWidth: 2, tension: 0.35, pointRadius: 4, pointBackgroundColor: color, spanGaps: false,
                     yAxisID: isBoth ? 'y1' : 'y' });
@@ -692,7 +698,7 @@ export function initAnalysis({
     // ── Save / Load ───────────────────────────────────────────────
     async function saveAnalysis() {
         const ni   = document.getElementById('aw2-save-name');
-        const name = ni?.value?.trim() || 'Analysis ' + new Date().toLocaleDateString('en-IN');
+        const name = ni?.value?.trim() || 'Analysis ' + new Date().toISOString().split('T')[0];
         const payload = {
             name, createdAt: new Date().toISOString(),
             config: { metrics: getSelectedMetrics(), years: getSelectedYears(), mode: getMode(),
