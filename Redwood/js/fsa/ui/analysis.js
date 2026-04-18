@@ -39,6 +39,13 @@ export function initAnalysis({
 
     // ── Helpers ───────────────────────────────────────────────────
 
+    /** Returns true if reclassMap contains at least one active mapping */
+    function hasActiveReclassifications(map) {
+        return Object.values(map || {}).some(doc =>
+            Object.values(doc || {}).some(sec => Object.keys(sec || {}).length > 0)
+        );
+    }
+
     /** Compute period-over-period % change; returns null when prev is 0 */
     function calcYoY(val, prev) {
         return prev !== 0 ? ((val - prev) / Math.abs(prev)) * 100 : null;
@@ -545,10 +552,7 @@ export function initAnalysis({
         const years     = getSelectedYears();
         // Treat reclass as "on" if the toggle is checked OR if there are active reclassifications
         const toggleOn  = document.getElementById('aw2-mode-reclass-cb')?.checked ?? false;
-        const hasActiveReclass = Object.values(reclassMap).some(doc =>
-            Object.values(doc || {}).some(sec => Object.keys(sec || {}).length > 0)
-        );
-        const reclassOn = toggleOn || hasActiveReclass;
+        const reclassOn = toggleOn || hasActiveReclassifications(reclassMap);
         if (!years.length) { showToast('Select at least one year.'); return; }
         if (mode === 'yoy' && years.length < 2) { showToast('YoY analysis requires at least 2 years.'); return; }
         // Metrics are only required for raw/yoy/both modes when reclass is NOT active
@@ -879,7 +883,7 @@ export function initAnalysis({
         renderRatioPairs();
         // Restore reclass toggle state if saved
         const reclassCb = document.getElementById('aw2-mode-reclass-cb');
-        if (reclassCb) reclassCb.checked = !!(saved.reclassMap && Object.keys(saved.reclassMap).some(k => Object.keys(saved.reclassMap[k] || {}).length > 0));
+        if (reclassCb) reclassCb.checked = hasActiveReclassifications(saved.reclassMap);
         if (saved.reclassMap) { Object.assign(reclassMap, saved.reclassMap); renderReclassChips(); }
         updateTabLocks();
         setNotes(saved.notes || saved.context || '');
