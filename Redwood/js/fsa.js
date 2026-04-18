@@ -471,6 +471,9 @@ function setupProjectLabel() {
 // ── SECTION RENDERER ──────────────────────────────────────────────────
 function renderSection(section) {
     if (!fsaState.currentFsaData) return;
+    // Scroll main content area back to top whenever a section is loaded
+    const fsaMain = document.querySelector('.fsa-main');
+    if (fsaMain) fsaMain.scrollTop = 0;
     const canvas = document.getElementById("canvas");
 
     if (section === "dashboard") {
@@ -492,9 +495,15 @@ function renderSection(section) {
             <div class="fsa-card">
                 <h2>Data Entry</h2>
 
-                <div style="margin-bottom:20px;">
+                <div class="de-year-toolbar">
                     <button id="add-year-btn" class="btn-secondary">+ Add Year</button>
-                    <button id="manage-years-btn" class="btn-secondary" style="background:transparent; border:1px solid var(--border-color); color:var(--text-muted);">Manage Years</button>
+                    <button id="manage-years-btn" class="btn-secondary de-manage-years-btn">⚙ Manage Years</button>
+                    <button id="sort-years-btn" class="btn-secondary de-sort-btn" title="Sort years">⇅ Sort</button>
+                    <div id="sort-years-popup" class="de-sort-popup" style="display:none;">
+                        <button class="de-sort-option" data-order="asc">▲ Ascending (Oldest → Latest)</button>
+                        <button class="de-sort-option" data-order="desc">▼ Descending (Latest → Oldest)</button>
+                        <button class="de-sort-option" data-order="none">↺ Reset to original order</button>
+                    </div>
                     <div id="year-container" style="margin-top:15px;"></div>
                 </div>
 
@@ -611,7 +620,54 @@ function renderSection(section) {
 
         renderNotesPanel();
 
-// PDF IMPORT LOGIC
+        // ── SORT YEARS BUTTON ────────────────────────────────────────────────
+        (function() {
+            const sortBtn   = document.getElementById('sort-years-btn');
+            const sortPopup = document.getElementById('sort-years-popup');
+            if (!sortBtn || !sortPopup) return;
+
+            // Restore persisted sort order on (re)render
+            if (!window.deYearSortOrder) {
+                window.deYearSortOrder = localStorage.getItem('redwood-de-sort-order') || 'none';
+            }
+
+            sortBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const open = sortPopup.style.display !== 'none';
+                sortPopup.style.display = open ? 'none' : 'block';
+            });
+            // Use one dismiss listener scoped to the popup element via a stored ref,
+            // removed when the data-entry panel is re-rendered (popup is removed from DOM).
+            function dismissSortPopup(e) {
+                if (!sortPopup.contains(e.target) && e.target !== sortBtn) {
+                    sortPopup.style.display = 'none';
+                }
+            }
+            document.addEventListener('click', dismissSortPopup);
+            // Clean up when the popup element is removed (section re-render).
+            // Observe the closest stable parent (the canvas container) to avoid an expensive body subtree watch.
+            const observeTarget = document.getElementById('canvas') || document.body;
+            new MutationObserver((_, obs) => {
+                if (!observeTarget.contains(sortPopup)) {
+                    document.removeEventListener('click', dismissSortPopup);
+                    obs.disconnect();
+                }
+            }).observe(observeTarget, { childList: true, subtree: true });
+
+            sortPopup.querySelectorAll('.de-sort-option').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.deYearSortOrder = btn.dataset.order || 'none';
+                    localStorage.setItem('redwood-de-sort-order', window.deYearSortOrder);
+                    sortPopup.style.display = 'none';
+                    // Re-render active doc tab
+                    const active = document.querySelector('.doc-tab-btn[style*="var(--brand-primary)"]') || document.querySelector('.doc-tab-btn');
+                    if (active) active.click();
+                });
+            });
+        })();
+
+
 document.getElementById('import-pdf-btn').addEventListener('click', () => {
     document.getElementById('pdf-import-input').click();
 });
@@ -862,10 +918,11 @@ document.getElementById('pdf-import-input').addEventListener('change', async (e)
             updateDocRef: updateDoc,
             projectId: currentProjectId,
             fsaId: currentFsaId,
+            // legacy fallbacks kept for safety; new code uses configSchemas.documents
             pnlSchema: configSchemas.documents.find(d => d.key === 'pnl') || configSchemas.documents[0],
             balanceSheetSchema: configSchemas.documents.find(d => d.key === 'bs') || configSchemas.documents[1],
             customRatios: configSchemas.customRatios,
-            configSchemas 
+            configSchemas
         });
 
         if (analysisModule && analysisModule.getHtmlTemplate) {

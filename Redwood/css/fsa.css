@@ -810,12 +810,120 @@ select {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 16px;
+  padding: 16px 20px;
   margin-top: 12px;
   box-shadow: var(--shadow-md);
+  animation: panelIn 0.18s ease;
 }
 
-/* ─── 13. PRINT ─────────────────────────────────────────────── */
+.manage-years-panel strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.manage-years-panel #hide-year-checkboxes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 0;
+}
+
+.manage-years-panel #hide-year-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  transition: all 0.18s;
+}
+
+.manage-years-panel #hide-year-checkboxes label:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow-sm);
+}
+
+.manage-years-panel #apply-year-filter {
+  font-size: 12px;
+  padding: 6px 16px;
+}
+
+/* ─── Data Entry year toolbar ────────────────────────────── */
+.de-year-toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.de-manage-years-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+.de-sort-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+.de-sort-btn:hover { color: var(--text) !important; border-color: var(--accent) !important; }
+
+.de-sort-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  min-width: 220px;
+  padding: 6px;
+  animation: panelIn 0.15s ease;
+}
+
+.de-sort-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.de-sort-option:hover {
+  background: var(--accent-glow-sm);
+  color: var(--text-accent);
+}
+
+/* year-container inside toolbar — wrap to new line */
+.de-year-toolbar #year-container {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+
 
 @media print {
   .fsa-topbar,
@@ -1487,7 +1595,8 @@ tr:has(.ult-add-select) td {
   border-top: 1px solid var(--border) !important;
 }
 
-[data-entry-area] input[type="number"] {
+[data-entry-area] input[type="number"],
+[data-entry-area] input[type="text"].ult-input {
   background: var(--bg-input) !important;
   border: 1px solid var(--border) !important;
   border-radius: 6px;
@@ -1501,7 +1610,8 @@ tr:has(.ult-add-select) td {
   -moz-appearance: textfield;
 }
 
-[data-entry-area] input[type="number"]:focus {
+[data-entry-area] input[type="number"]:focus,
+[data-entry-area] input[type="text"].ult-input:focus {
   border-color: var(--border-focus) !important;
   background: var(--bg-input-focus) !important;
   box-shadow: 0 0 0 3px var(--accent-glow-sm) !important;
@@ -3397,4 +3507,1027 @@ conflict-modal button {
     background: #1e2430; 
     color: #e2e8f0;
     padding: 8px;
+}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 4: Indian Formatting · Year Separators · Statements UI
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 51. YEAR COLUMN SEPARATORS (Data Entry + Statements) ───── */
+
+/* Visual border between each year column in the data-entry table */
+.ultimate-fsa-table thead th:not(:first-child),
+.ultimate-fsa-table tbody td:not(:first-child) {
+  border-left: 1px solid var(--border);
+}
+
+/* Slightly stronger separator for the first year column */
+.ultimate-fsa-table thead th:nth-child(2),
+.ultimate-fsa-table tbody td:nth-child(2) {
+  border-left: 2px solid var(--border-strong);
+}
+
+/* ─── 52. FIELD ROW SEPARATORS (non-sub items) ───────────────── */
+
+/* Add a more visible bottom border to top-level (non-sub) item rows
+   to improve scannability between line items */
+.ult-row-item:not(.ult-sub) td {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Sub-items stay with finer separator */
+.ult-row-item.ult-sub td {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ─── 53. STATEMENT YEAR SEPARATORS ─────────────────────────── */
+
+/* Applied via JS to year-data cells (idx > 0) */
+.stmt-year-sep {
+  border-left: 1px solid var(--border) !important;
+}
+
+.statement-table th.stmt-year-sep {
+  border-left: 2px solid var(--border-strong) !important;
+}
+
+/* Data-entry year separator (class-based, for JS injection) */
+.ult-year-sep {
+  border-left: 1px solid var(--border) !important;
+}
+
+.ultimate-fsa-table thead th.ult-year-sep {
+  border-left: 2px solid var(--border-strong) !important;
+}
+
+/* ─── 54. STATEMENT UI — DATA-ENTRY ALIGNMENT ────────────────── */
+
+/* Statement block now uses the same card conventions as data-entry */
+.statement-block {
+  margin-bottom: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.statement-block h3 {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  padding: 14px 20px;
+  background: var(--table-header-bg);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Statement table — match data-entry header sizing */
+.statement-table thead th {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+
+/* Row hover consistent with data-entry */
+.statement-table tr:not(.statement-section):not(.statement-total):hover td {
+  background: var(--row-hover) !important;
+}
+
+/* Statement group row — mirrors .ult-row-group */
+.statement-group td {
+  background: var(--bg-base) !important;
+  color: var(--text) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-top: 2px solid var(--border) !important;
+}
+
+/* ─── 55. KPI SETTINGS — ADVANCED TOGGLE ─────────────────────── */
+
+/* The advanced details/summary panel for key/dataPath */
+.kpi-advanced-panel {
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.kpi-advanced-summary {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-advanced-summary::-webkit-details-marker { display: none; }
+
+.kpi-advanced-summary::before {
+  content: '▶';
+  font-size: 8px;
+  transition: transform 0.2s;
+}
+
+details[open] .kpi-advanced-summary::before {
+  transform: rotate(90deg);
+}
+
+.kpi-advanced-summary:hover { color: var(--text-accent); }
+
+/* ─── 56. TEXT INPUTS (live Indian formatting) ───────────────── */
+
+/* Text inputs used in place of number inputs for Indian formatting */
+.ult-input[type="text"] {
+  text-align: right;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 5: Analysis Workbench v2 (aw2-*)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 57. AW2 LAYOUT / WRAPPER ─────────────────────────────── */
+.aw2-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: var(--font-ui, 'Inter', system-ui, sans-serif);
+  color: var(--text);
+}
+
+/* ─── 58. HEADER ────────────────────────────────────────────── */
+.aw2-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.aw2-header-left { display: flex; align-items: center; gap: 10px; }
+.aw2-header-icon { font-size: 22px; }
+.aw2-header-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+.aw2-header-right { display: flex; align-items: center; gap: 10px; }
+
+/* ─── 59. BUTTONS ───────────────────────────────────────────── */
+.aw2-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.aw2-btn-ghost:hover { background: var(--bg-input); border-color: var(--border-strong); }
+.aw2-btn-primary {
+  background: var(--brand-primary, #6366f1);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.4px;
+}
+.aw2-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.aw2-btn-save {
+  background: var(--brand-primary, #6366f1);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.aw2-btn-save:hover { opacity: 0.88; }
+.aw2-btn-apply {
+  background: var(--positive, #10b981);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.aw2-btn-clear {
+  background: transparent;
+  border: 1px solid var(--fsa-negative, #ef4444);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fsa-negative, #ef4444);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+/* ─── 60. CONFIG PANEL + STEP TABS ─────────────────────────── */
+.aw2-config-panel {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.aw2-steps {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.aw2-steps::-webkit-scrollbar { display: none; }
+.aw2-step-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+.aw2-step-tab:hover { color: var(--text); background: var(--bg-input); }
+.aw2-step-tab.active { color: var(--brand-primary, #6366f1); border-bottom-color: var(--brand-primary, #6366f1); }
+.aw2-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+.aw2-step-tab.active .aw2-step-num { background: var(--brand-primary, #6366f1); color: #fff; }
+
+/* Locked tab state */
+.aw2-step-tab.locked {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.aw2-step-tab.locked .aw2-step-num {
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+/* Reclassification toggle row in mode step */
+.aw2-mode-reclass-row {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.aw2-mode-reclass-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  user-select: none;
+}
+
+.aw2-step-badge {
+  background: var(--brand-primary, #6366f1);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.aw2-step-panel { display: none; padding: 24px; }
+.aw2-step-panel.active { display: block; }
+.aw2-step-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* ─── 61. SEARCH INPUTS ─────────────────────────────────────── */
+.aw2-search-input,
+.aw2-modal-search {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 9px 14px;
+  outline: none;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+.aw2-search-input:focus,
+.aw2-modal-search:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow-sm); }
+
+/* ─── 62. METRIC TREE ───────────────────────────────────────── */
+.aw2-metric-tree {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.aw2-tree-group { margin-bottom: 12px; }
+.aw2-tree-group-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent, #818cf8);
+  padding: 8px 4px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 4px;
+}
+.aw2-tree-section { margin-bottom: 2px; }
+.aw2-tree-items { padding-left: 12px; }
+.aw2-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: background 0.15s;
+}
+.aw2-tree-row:hover { background: var(--bg-input); color: var(--text); }
+.aw2-tree-row input[type="checkbox"] { accent-color: var(--brand-primary, #6366f1); flex-shrink: 0; }
+.aw2-tree-total span { font-weight: 700; color: var(--text); }
+.aw2-tree-sub span { font-size: 11px; padding-left: 12px; opacity: 0.8; }
+.aw2-tree-sub span::before { content: "↳ "; opacity: 0.5; }
+.aw2-tree-formula span { font-style: italic; color: var(--accent, #818cf8); }
+
+/* ─── 63. YEAR PILLS ────────────────────────────────────────── */
+.aw2-year-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.aw2-year-pill {
+  padding: 7px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.aw2-year-pill:hover { border-color: var(--brand-primary, #6366f1); color: var(--brand-primary, #6366f1); }
+.aw2-year-pill.selected {
+  background: var(--brand-primary, #6366f1);
+  border-color: var(--brand-primary, #6366f1);
+  color: #fff;
+}
+.aw2-year-all { background: var(--bg-surface-hover, rgba(255,255,255,0.04)); }
+
+/* ─── 64. MODE CARDS ────────────────────────────────────────── */
+.aw2-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.aw2-mode-card {
+  display: block;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--bg-input);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.aw2-mode-card input[type="radio"] { display: none; }
+.aw2-mode-card:hover { border-color: var(--brand-primary, #6366f1); }
+.aw2-mode-card.selected {
+  border-color: var(--brand-primary, #6366f1);
+  background: rgba(99,102,241,0.1);
+}
+.aw2-mode-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 12px;
+  text-align: center;
+}
+.aw2-mode-icon { font-size: 28px; }
+.aw2-mode-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.aw2-mode-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+/* ─── 65. RATIO PAIRS ───────────────────────────────────────── */
+.aw2-ratio-shared-toggle {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+}
+.aw2-toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; }
+.aw2-toggle-track {
+  position: relative; display: inline-block; width: 36px; height: 20px;
+  background: var(--border); border-radius: 20px; flex-shrink: 0; transition: all 0.2s;
+}
+.aw2-toggle-track::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: all 0.2s;
+}
+.aw2-toggle-label input:checked ~ .aw2-toggle-track { background: var(--brand-primary, #6366f1); }
+.aw2-toggle-label input:checked ~ .aw2-toggle-track::after { left: 19px; }
+.aw2-toggle-label input[type="checkbox"] { display: none; }
+.aw2-toggle-text { font-size: 13px; color: var(--text-secondary); }
+
+.aw2-ratio-denom-box {
+  padding: 16px;
+  background: rgba(99,102,241,0.06);
+  border: 1px dashed var(--brand-primary, #6366f1);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.aw2-ratio-pair-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.aw2-pair-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.aw2-pair-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.aw2-pair-remove {
+  background: transparent;
+  border: none;
+  color: var(--fsa-negative, #ef4444);
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.aw2-pair-remove:hover { opacity: 1; }
+.aw2-pair-body {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  align-items: start;
+  gap: 0;
+}
+@media (max-width: 700px) {
+  .aw2-pair-body { grid-template-columns: 1fr; }
+  .aw2-pair-divider { text-align: center; padding: 4px 0; }
+}
+.aw2-pair-slot { padding: 16px; }
+.aw2-pair-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-muted);
+  padding: 16px 0;
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+}
+.aw2-slot-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.aw2-slot-label small { font-size: 10px; color: var(--text-muted); }
+.aw2-shared-notice {
+  font-size: 12px;
+  color: var(--positive, #10b981);
+  font-weight: 600;
+  padding: 8px;
+  background: rgba(16,185,129,0.08);
+  border-radius: 8px;
+}
+.aw2-add-metric-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.aw2-add-metric-btn:hover { border-color: var(--brand-primary, #6366f1); color: var(--brand-primary, #6366f1); }
+.aw2-add-pair-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.aw2-add-pair-btn:hover { border-color: var(--brand-primary, #6366f1); color: var(--brand-primary, #6366f1); background: rgba(99,102,241,0.05); }
+
+/* Badges */
+.aw2-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.aw2-badge-num  { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+.aw2-badge-denom{ background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+
+/* Chips */
+.aw2-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+.aw2-chips-empty { font-size: 11px; color: var(--text-muted); font-style: italic; padding: 4px 0; }
+.aw2-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(99,102,241,0.12);
+  border: 1px solid rgba(99,102,241,0.3);
+  font-size: 11px;
+  color: var(--text);
+  max-width: 200px;
+}
+.aw2-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw2-chip-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.aw2-chip-del:hover { color: var(--fsa-negative, #ef4444); }
+
+/* ─── 66. RECLASSIFICATION ──────────────────────────────────── */
+.aw2-reclass-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.aw2-reclass-col { display: flex; flex-direction: column; gap: 4px; }
+.aw2-reclass-items { flex: 1; min-width: 160px; }
+.aw2-reclass-arrow { font-size: 18px; color: var(--text-muted); align-self: center; padding-bottom: 4px; }
+.aw2-reclass-actions { display: flex; gap: 8px; align-self: flex-end; }
+.aw2-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.aw2-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  transition: all 0.2s;
+}
+.aw2-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow-sm); }
+.aw2-select-multi { min-height: 80px; }
+
+/* ── Reclass checkbox item list ──────────────────────────── */
+.aw2-reclass-cb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 140px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-width: 160px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.aw2-reclass-cb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: 5px;
+  transition: background 0.15s;
+  user-select: none;
+}
+.aw2-reclass-cb-item:hover { background: var(--accent-glow-sm); }
+.aw2-reclass-cb-item input[type="checkbox"] { accent-color: var(--brand-primary, #6366f1); cursor: pointer; }
+.aw2-reclass-items-empty { font-size: 11px; color: var(--text-muted); font-style: italic; padding: 4px; }
+
+/* ── Small button modifier ───────────────────────────────── */
+.aw2-btn-sm { padding: 7px 14px !important; font-size: 12px !important; }
+
+/* ── Reclassified output table styles ───────────────────── */
+.aw2-reclass-doc-heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-accent, var(--brand-primary));
+  padding: 16px 0 8px;
+  border-bottom: 2px solid var(--brand-primary, #6366f1);
+  margin-bottom: 8px;
+}
+.aw2-reclass-sec-head td {
+  background: var(--bg-input) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 12px !important;
+}
+.aw2-reclass-li { padding-left: 24px !important; color: var(--text); }
+.aw2-reclass-sec-total td {
+  border-top: 1px solid var(--border-strong) !important;
+  background: rgba(99,102,241,0.05) !important;
+  font-weight: 700;
+}
+
+
+.aw2-reclass-chips-row { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.aw2-reclass-chips-row .aw2-field-label { margin-top: 6px; flex-shrink: 0; }
+.aw2-reclass-empty { font-size: 11px; color: var(--text-muted); font-style: italic; }
+.aw2-reclass-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  font-size: 11px;
+}
+.aw2-rc-from, .aw2-rc-to { font-weight: 700; }
+.aw2-rc-item { color: var(--text-muted); }
+
+/* ─── 67. TOAST ─────────────────────────────────────────────── */
+.aw2-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 9999;
+}
+.aw2-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── 68. OUTPUT SECTION ────────────────────────────────────── */
+.aw2-output-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+}
+.aw2-output-wrap.visible { display: flex; }
+.aw2-output-header {
+  padding: 16px 24px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent, #818cf8);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Chart Card */
+.aw2-chart-card {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 24px;
+}
+.aw2-chart-inner {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+/* Table Card */
+.aw2-table-card {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.aw2-table-label {
+  padding: 12px 20px 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+/* Table — sticky first col + header, horizontal scroll */
+.aw2-table-scroll {
+  overflow-x: auto;
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+.aw2-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 500px;
+  font-size: 12px;
+}
+.aw2-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--table-header-bg, #0d1117);
+  padding: 10px 14px;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  border-bottom: 2px solid var(--border);
+}
+.aw2-col-fixed {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--bg-surface);
+  text-align: left !important;
+  min-width: 200px;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border-subtle);
+  padding: 10px 14px !important;
+}
+.aw2-table thead th.aw2-col-fixed { z-index: 6; background: var(--table-header-bg, #0d1117); }
+.aw2-table tbody tr:hover td { background: var(--row-hover, rgba(99,102,241,0.04)) !important; }
+.aw2-table tbody td {
+  padding: 9px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text);
+  white-space: nowrap;
+}
+.aw2-base-cell { color: var(--text-muted) !important; font-style: italic; }
+.aw2-pos { color: var(--positive, #10b981) !important; font-weight: 600; }
+.aw2-neg { color: var(--fsa-negative, #ef4444) !important; font-weight: 600; }
+.aw2-yoy-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.aw2-yoy-badge.aw2-pos { background: rgba(16,185,129,0.1); }
+.aw2-yoy-badge.aw2-neg { background: rgba(239,68,68,0.1); }
+.aw2-empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; }
+
+/* Ratio table rows */
+.aw2-ratio-group-head td {
+  background: var(--bg-input) !important;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent, #818cf8);
+  padding: 10px 14px !important;
+  border-top: 2px solid var(--border);
+}
+.aw2-ratio-result { background: rgba(99,102,241,0.05); }
+.aw2-ratio-result td { font-weight: 700 !important; }
+
+/* ─── 69. NOTES CARD ────────────────────────────────────────── */
+.aw2-notes-card {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+}
+.aw2-notes-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.aw2-notes-title { font-size: 12px; font-weight: 700; color: var(--text); }
+.aw2-notes-editor {
+  min-height: 160px;
+  background: var(--bg-input);
+}
+.aw2-notes-editor .ql-toolbar {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+.aw2-notes-editor .ql-container {
+  background: var(--bg-input);
+  border-color: var(--border-subtle);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  min-height: 120px;
+}
+.aw2-notes-ta {
+  width: 100%;
+  min-height: 160px;
+  background: var(--bg-input);
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 16px 20px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+/* ─── 70. SAVE BAR ──────────────────────────────────────────── */
+.aw2-save-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+}
+.aw2-save-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 9px 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+.aw2-save-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow-sm); }
+
+/* ─── 71. SAVED ANALYSES ────────────────────────────────────── */
+.aw2-saved-section {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  padding: 20px 24px;
+}
+.aw2-saved-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.aw2-saved-list { display: flex; flex-wrap: wrap; gap: 12px; }
+.aw2-saved-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+.aw2-saved-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 280px;
+  transition: all 0.18s;
+}
+.aw2-saved-card:hover { border-color: var(--brand-primary, #6366f1); }
+.aw2-saved-body {
+  flex: 1;
+  padding: 12px 14px;
+  cursor: pointer;
+  min-width: 0;
+}
+.aw2-saved-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aw2-saved-meta {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.aw2-saved-del {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.aw2-saved-del:hover { background: rgba(239,68,68,0.1); color: var(--fsa-negative, #ef4444); }
+
+/* ─── 72. PICKER MODAL ──────────────────────────────────────── */
+.aw2-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.aw2-modal-overlay.open { display: flex; }
+.aw2-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 480px;
+  max-width: 96vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.aw2-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.aw2-modal-title { font-size: 14px; font-weight: 800; flex-shrink: 0; }
+.aw2-modal-search { margin-bottom: 0; flex: 1; }
+.aw2-modal-tree { flex: 1; overflow-y: auto; padding: 16px 20px; min-height: 200px; }
+.aw2-modal-foot {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
 }

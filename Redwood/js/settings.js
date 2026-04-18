@@ -886,15 +886,20 @@ function renderMetricsFormulas() {
   c.innerHTML = metricsFormulas.map((m, i) => `
     <div style="background:rgba(15,23,42,0.4); border:1px solid var(--border-subtle);
                 border-radius:12px; padding:20px; margin-bottom:16px;">
+
+      <!-- ── Primary row: label first ── -->
       <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-        <div style="flex:1; min-width:180px;">
-          <label style="font-size:11px; color:var(--text-muted); font-weight:700; display:block; margin-bottom:6px;">METRIC NAME</label>
+        <div style="flex:1; min-width:200px;">
+          <label style="font-size:11px; color:var(--text-muted); font-weight:700; display:block; margin-bottom:6px;">
+            DISPLAY LABEL <span style="color:var(--accent); font-style:normal; font-weight:400;">(shown to users)</span>
+          </label>
           <input class="enterprise-input" value="${m.label}"
                  oninput="updateMetric(${i}, 'label', this.value)" placeholder="e.g. EBITDA" />
-          <div style="font-family:monospace; font-size:10px; color:var(--text-muted); margin-top:6px;">Key: ${m.key}</div>
         </div>
         <div style="flex:2; min-width:250px;">
-          <label style="font-size:11px; color:var(--text-muted); font-weight:700; display:block; margin-bottom:6px;">FORMULA</label>
+          <label style="font-size:11px; color:var(--text-muted); font-weight:700; display:block; margin-bottom:6px;">
+            FORMULA <span style="color:var(--accent); font-style:normal; font-weight:400;">(use section/item keys, e.g. revenue - directCosts)</span>
+          </label>
           <input class="enterprise-input" style="font-family:monospace; color:var(--brand-primary);"
                  value="${m.formula || ''}" oninput="updateMetric(${i}, 'formula', this.value)"
                  placeholder="e.g. revenue - directCosts" />
@@ -907,6 +912,25 @@ function renderMetricsFormulas() {
         </div>
         <button class="btn-danger" style="margin-top:24px;" onclick="removeMetric(${i})">✕</button>
       </div>
+
+      <!-- ── Advanced: key / dataPath (hidden by default) ── -->
+      <details class="kpi-advanced-panel" style="margin-top:12px;">
+        <summary class="kpi-advanced-summary">⚙ Advanced — Key / Data Path</summary>
+        <div style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+          <div style="flex:1; min-width:200px;">
+            <label style="font-size:10px; color:var(--text-muted); font-weight:700; display:block; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.8px;">
+              Internal Key <span style="color:var(--text-muted); font-weight:400;">(stable machine reference)</span>
+            </label>
+            <input class="enterprise-input" style="font-family:monospace; font-size:11px;"
+                   value="${m.key}"
+                   oninput="updateMetric(${i}, 'key', this.value)"
+                   placeholder="e.g. ebitda" />
+            <div style="font-size:10px; color:var(--text-muted); margin-top:5px; line-height:1.5;">
+              Used internally in formulas and data paths. Renaming the label above will NOT break this reference.
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
   `).join("");
 }
@@ -1004,14 +1028,17 @@ function renderDashboardConfig() {
   const kpiContainer = document.getElementById("dashboard-kpis-container");
   if (kpiContainer) {
     kpiContainer.innerHTML = allOpts.map(opt => `
-      <label style="display:flex; align-items:center; gap:8px; background:var(--bg-input);
+      <label style="display:flex; align-items:center; gap:10px; background:var(--bg-input);
                     padding:10px 14px; border-radius:8px; border:1px solid var(--border-subtle);
                     cursor:pointer; transition:all 0.2s;">
         <input type="checkbox" value="${opt.key}"
                ${dashboardConfig.kpis.includes(opt.key) ? 'checked' : ''}
                onchange="toggleKpi('${opt.key}', this.checked)"
                style="accent-color:var(--brand-primary);" />
-        <span style="font-size:12px; font-weight:600;">${opt.label}</span>
+        <span style="flex:1;">
+          <span style="font-size:12px; font-weight:600; display:block;">${opt.label}</span>
+          <span style="font-size:10px; font-family:monospace; color:var(--text-muted); opacity:0.7;">${opt.key}</span>
+        </span>
       </label>
     `).join("");
   }
@@ -1162,7 +1189,11 @@ function attachRatioListeners(container) {
 }
 
 // ── WINDOW HANDLERS ───────────────────────────────────────────────
-window.addMetricFormula = () => { metricsFormulas.push({ key: `metric_${Date.now()}`, label: 'New Metric', formula: '', isPercentage: false }); renderMetricsFormulas(); };
+window.addMetricFormula = () => {
+  const ts = Date.now();
+  metricsFormulas.push({ key: `metric_${ts}`, label: 'New Metric', formula: '', isPercentage: false });
+  renderMetricsFormulas();
+};
 window.updateMetric     = (i, field, val) => { metricsFormulas[i][field] = val; };
 window.removeMetric     = (i) => { metricsFormulas.splice(i, 1); renderMetricsFormulas(); renderDashboardConfig(); renderCustomRatios(); };
 
@@ -1219,7 +1250,14 @@ async function saveSchema() {
 
 async function saveMetricsFormulas() {
   metricsFormulas.forEach(m => {
-    if (m.key.startsWith('metric_')) m.key = m.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
+    // Auto-generate a stable key from the label only for brand-new metrics
+    // (those that still have the auto-assigned `metric_<timestamp>` placeholder key).
+    // If the user explicitly set a key via the Advanced panel, leave it unchanged.
+    if (m.key.startsWith('metric_')) {
+      m.key = m.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
+    }
+    // Ensure key is never empty
+    if (!m.key) m.key = `metric_${Date.now()}`;
   });
   
   // ✅ ENHANCED: Extract and validate confidence thresholds
