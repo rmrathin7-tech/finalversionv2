@@ -543,10 +543,15 @@ export function initAnalysis({
         const mode      = getMode();
         const metrics   = getSelectedMetrics();
         const years     = getSelectedYears();
-        const reclassOn = document.getElementById('aw2-mode-reclass-cb')?.checked ?? false;
+        // Treat reclass as "on" if the toggle is checked OR if there are active reclassifications
+        const toggleOn  = document.getElementById('aw2-mode-reclass-cb')?.checked ?? false;
+        const hasActiveReclass = Object.values(reclassMap).some(doc =>
+            Object.values(doc || {}).some(sec => Object.keys(sec || {}).length > 0)
+        );
+        const reclassOn = toggleOn || hasActiveReclass;
         if (!years.length) { showToast('Select at least one year.'); return; }
         if (mode === 'yoy' && years.length < 2) { showToast('YoY analysis requires at least 2 years.'); return; }
-        // Metrics are only required for raw/yoy/both modes when reclass is NOT enabled
+        // Metrics are only required for raw/yoy/both modes when reclass is NOT active
         if (mode !== 'ratios' && !reclassOn && !metrics.length) {
             showToast('Select at least one metric.'); return;
         }

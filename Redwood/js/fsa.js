@@ -626,6 +626,11 @@ function renderSection(section) {
             const sortPopup = document.getElementById('sort-years-popup');
             if (!sortBtn || !sortPopup) return;
 
+            // Restore persisted sort order on (re)render
+            if (!window.deYearSortOrder) {
+                window.deYearSortOrder = localStorage.getItem('redwood-de-sort-order') || 'none';
+            }
+
             sortBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const open = sortPopup.style.display !== 'none';
@@ -653,6 +658,7 @@ function renderSection(section) {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.deYearSortOrder = btn.dataset.order || 'none';
+                    localStorage.setItem('redwood-de-sort-order', window.deYearSortOrder);
                     sortPopup.style.display = 'none';
                     // Re-render active doc tab
                     const active = document.querySelector('.doc-tab-btn[style*="var(--brand-primary)"]') || document.querySelector('.doc-tab-btn');

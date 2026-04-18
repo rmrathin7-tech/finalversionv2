@@ -55,7 +55,7 @@ export function initDashboard({ currentFsaData, reclassMap, configSchemas }) {
     dashboardCharts.forEach(c => c.destroy());
     dashboardCharts = [];
 
-    const latestYear = years[years.length - 1];
+    const latestYear = years[0];
     canvas.innerHTML = buildShell(years, latestYear);
     
     renderKPIs(years, latestYear);

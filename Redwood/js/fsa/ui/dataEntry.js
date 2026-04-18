@@ -126,7 +126,7 @@ export function initDataEntry({
         let years = currentFsaData.years || [];
         if (window.hiddenYears) years = years.filter(y => !window.hiddenYears.includes(y));
 
-        const _sortOrder = window.deYearSortOrder || 'none';
+        const _sortOrder = window.deYearSortOrder || localStorage.getItem('redwood-de-sort-order') || 'none';
         if (_sortOrder === 'asc') {
             years = [...years].sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
         } else if (_sortOrder === 'desc') {
