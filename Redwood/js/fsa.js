@@ -639,13 +639,15 @@ function renderSection(section) {
                 }
             }
             document.addEventListener('click', dismissSortPopup);
-            // Clean up when the popup element is removed (section re-render)
+            // Clean up when the popup element is removed (section re-render).
+            // Observe the closest stable parent (the canvas container) to avoid an expensive body subtree watch.
+            const observeTarget = document.getElementById('canvas') || document.body;
             new MutationObserver((_, obs) => {
-                if (!document.body.contains(sortPopup)) {
+                if (!observeTarget.contains(sortPopup)) {
                     document.removeEventListener('click', dismissSortPopup);
                     obs.disconnect();
                 }
-            }).observe(document.body, { childList: true, subtree: true });
+            }).observe(observeTarget, { childList: true, subtree: true });
 
             sortPopup.querySelectorAll('.de-sort-option').forEach(btn => {
                 btn.addEventListener('click', (e) => {

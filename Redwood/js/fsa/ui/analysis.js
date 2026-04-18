@@ -782,7 +782,8 @@ export function initAnalysis({
     }
 
     // ── Toast ─────────────────────────────────────────────────────
-    function showToast(msg) {        const el = document.getElementById('aw2-toast');
+    function showToast(msg) {
+        const el = document.getElementById('aw2-toast');
         if (!el) { alert(msg); return; }
         el.textContent = msg; el.classList.add('show');
         clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3000);
