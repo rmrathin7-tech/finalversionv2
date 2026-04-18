@@ -489,6 +489,7 @@ export function initAnalysis({
         if (ratiosTab) {
             const lock = mode !== 'ratios';
             ratiosTab.classList.toggle('locked', lock);
+            ratiosTab.setAttribute('aria-disabled', lock ? 'true' : 'false');
             ratiosTab.title = lock ? 'Select "Ratio Analysis" mode to unlock' : '';
             // If currently active and now locked, jump back to mode
             if (lock && ratiosTab.classList.contains('active')) {
@@ -501,6 +502,7 @@ export function initAnalysis({
         if (reclassTab) {
             const lock = !reclassOn;
             reclassTab.classList.toggle('locked', lock);
+            reclassTab.setAttribute('aria-disabled', lock ? 'true' : 'false');
             reclassTab.title = lock ? 'Enable "Include Reclassification" in Mode step to unlock' : '';
             if (lock && reclassTab.classList.contains('active')) {
                 document.querySelectorAll('.aw2-step-tab').forEach(t => t.classList.remove('active'));

@@ -631,7 +631,21 @@ function renderSection(section) {
                 const open = sortPopup.style.display !== 'none';
                 sortPopup.style.display = open ? 'none' : 'block';
             });
-            document.addEventListener('click', () => { sortPopup.style.display = 'none'; }, { capture: false });
+            // Use one dismiss listener scoped to the popup element via a stored ref,
+            // removed when the data-entry panel is re-rendered (popup is removed from DOM).
+            function dismissSortPopup(e) {
+                if (!sortPopup.contains(e.target) && e.target !== sortBtn) {
+                    sortPopup.style.display = 'none';
+                }
+            }
+            document.addEventListener('click', dismissSortPopup);
+            // Clean up when the popup element is removed (section re-render)
+            new MutationObserver((_, obs) => {
+                if (!document.body.contains(sortPopup)) {
+                    document.removeEventListener('click', dismissSortPopup);
+                    obs.disconnect();
+                }
+            }).observe(document.body, { childList: true, subtree: true });
 
             sortPopup.querySelectorAll('.de-sort-option').forEach(btn => {
                 btn.addEventListener('click', (e) => {
