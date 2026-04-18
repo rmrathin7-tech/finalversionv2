@@ -55,7 +55,10 @@ export function initDashboard({ currentFsaData, reclassMap, configSchemas }) {
     dashboardCharts.forEach(c => c.destroy());
     dashboardCharts = [];
 
-    const latestYear = years[0];
+    // Default to the earliest (base) year so YoY progression is chronologically correct
+    const latestYear = [...years].sort((a, b) =>
+        (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)
+    )[0];
     canvas.innerHTML = buildShell(years, latestYear);
     
     renderKPIs(years, latestYear);
