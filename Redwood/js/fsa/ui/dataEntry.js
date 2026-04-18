@@ -126,7 +126,14 @@ export function initDataEntry({
         let years = currentFsaData.years || [];
         if (window.hiddenYears) years = years.filter(y => !window.hiddenYears.includes(y));
 
-        years = [...years].sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0))
+        const _sortOrder = window.deYearSortOrder || 'none';
+        if (_sortOrder === 'asc') {
+            years = [...years].sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
+        } else if (_sortOrder === 'desc') {
+            years = [...years].sort((a, b) => (parseInt(b.replace(/\D/g, '')) || 0) - (parseInt(a.replace(/\D/g, '')) || 0));
+        } else {
+            years = [...years]; // keep original Firestore order
+        }
         if (!years.length) {
             container.innerHTML = `
                 <div style="text-align:center; padding:60px; color:var(--text-muted);

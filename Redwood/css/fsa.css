@@ -810,12 +810,120 @@ select {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 16px;
+  padding: 16px 20px;
   margin-top: 12px;
   box-shadow: var(--shadow-md);
+  animation: panelIn 0.18s ease;
 }
 
-/* ─── 13. PRINT ─────────────────────────────────────────────── */
+.manage-years-panel strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.manage-years-panel #hide-year-checkboxes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 0;
+}
+
+.manage-years-panel #hide-year-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  transition: all 0.18s;
+}
+
+.manage-years-panel #hide-year-checkboxes label:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow-sm);
+}
+
+.manage-years-panel #apply-year-filter {
+  font-size: 12px;
+  padding: 6px 16px;
+}
+
+/* ─── Data Entry year toolbar ────────────────────────────── */
+.de-year-toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.de-manage-years-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+.de-sort-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+.de-sort-btn:hover { color: var(--text) !important; border-color: var(--accent) !important; }
+
+.de-sort-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  min-width: 220px;
+  padding: 6px;
+  animation: panelIn 0.15s ease;
+}
+
+.de-sort-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.de-sort-option:hover {
+  background: var(--accent-glow-sm);
+  color: var(--text-accent);
+}
+
+/* year-container inside toolbar — wrap to new line */
+.de-year-toolbar #year-container {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+
 
 @media print {
   .fsa-topbar,
@@ -3696,6 +3804,35 @@ details[open] .kpi-advanced-summary::before {
   transition: all 0.18s;
 }
 .aw2-step-tab.active .aw2-step-num { background: var(--brand-primary, #6366f1); color: #fff; }
+
+/* Locked tab state */
+.aw2-step-tab.locked {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.aw2-step-tab.locked .aw2-step-num {
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+/* Reclassification toggle row in mode step */
+.aw2-mode-reclass-row {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.aw2-mode-reclass-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  user-select: none;
+}
+
 .aw2-step-badge {
   background: var(--brand-primary, #6366f1);
   color: #fff;

@@ -231,8 +231,11 @@ export function initAnalysis({
             card.addEventListener('click', () => {
                 document.querySelectorAll('.aw2-mode-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
+                updateTabLocks();
             });
         });
+        // Reclass toggle inside mode panel
+        document.getElementById('aw2-mode-reclass-cb')?.addEventListener('change', updateTabLocks);
     }
 
     // ── Ratio Pairs ───────────────────────────────────────────────
@@ -468,12 +471,44 @@ export function initAnalysis({
         const panels = document.querySelectorAll('.aw2-step-panel');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                if (tab.classList.contains('locked')) return;
                 tabs.forEach(t => t.classList.remove('active'));
                 panels.forEach(p => p.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById('aw2-step-' + tab.dataset.step)?.classList.add('active');
             });
         });
+    }
+
+    function updateTabLocks() {
+        const mode       = getMode();
+        const reclassOn  = document.getElementById('aw2-mode-reclass-cb')?.checked ?? false;
+        const ratiosTab  = document.querySelector('.aw2-step-tab[data-step="ratios"]');
+        const reclassTab = document.querySelector('.aw2-step-tab[data-step="reclass"]');
+
+        if (ratiosTab) {
+            const lock = mode !== 'ratios';
+            ratiosTab.classList.toggle('locked', lock);
+            ratiosTab.title = lock ? 'Select "Ratio Analysis" mode to unlock' : '';
+            // If currently active and now locked, jump back to mode
+            if (lock && ratiosTab.classList.contains('active')) {
+                document.querySelectorAll('.aw2-step-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.aw2-step-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector('.aw2-step-tab[data-step="mode"]')?.classList.add('active');
+                document.getElementById('aw2-step-mode')?.classList.add('active');
+            }
+        }
+        if (reclassTab) {
+            const lock = !reclassOn;
+            reclassTab.classList.toggle('locked', lock);
+            reclassTab.title = lock ? 'Enable "Include Reclassification" in Mode step to unlock' : '';
+            if (lock && reclassTab.classList.contains('active')) {
+                document.querySelectorAll('.aw2-step-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.aw2-step-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector('.aw2-step-tab[data-step="mode"]')?.classList.add('active');
+                document.getElementById('aw2-step-mode')?.classList.add('active');
+            }
+        }
     }
 
     // ── Run Analysis ──────────────────────────────────────────────
@@ -737,7 +772,11 @@ export function initAnalysis({
         _sharedDenomOn = cfg.sharedDenomOn || false;
         _sharedDenom   = cfg.sharedDenom   || [];
         renderRatioPairs();
+        // Restore reclass toggle state if saved
+        const reclassCb = document.getElementById('aw2-mode-reclass-cb');
+        if (reclassCb) reclassCb.checked = !!(saved.reclassMap && Object.keys(saved.reclassMap).some(k => Object.keys(saved.reclassMap[k] || {}).length > 0));
         if (saved.reclassMap) { Object.assign(reclassMap, saved.reclassMap); renderReclassChips(); }
+        updateTabLocks();
         setNotes(saved.notes || saved.context || '');
         runAnalysis();
         document.getElementById('aw2-output-wrap')?.scrollIntoView({ behavior: 'smooth' });
@@ -776,6 +815,8 @@ export function initAnalysis({
         document.querySelectorAll('input[name="aw2-mode-radio"]').forEach((r, i) => {
             r.checked = i === 0; r.closest('.aw2-mode-card')?.classList.toggle('selected', i === 0);
         });
+        const reclassCb = document.getElementById('aw2-mode-reclass-cb');
+        if (reclassCb) reclassCb.checked = false;
         _ratioPairs = [{ id:1, setA:[], setB:[] }]; _sharedDenomOn = false; _sharedDenom = [];
         renderRatioPairs();
         Object.keys(reclassMap).forEach(k => { reclassMap[k] = {}; });
@@ -784,6 +825,7 @@ export function initAnalysis({
         if (_chart) { _chart.destroy(); _chart = null; }
         document.getElementById('aw2-output-wrap')?.classList.remove('visible');
         document.getElementById('aw2-table-area')?.replaceChildren();
+        updateTabLocks();
     }
 
     // ── Init ──────────────────────────────────────────────────────
@@ -800,6 +842,7 @@ export function initAnalysis({
         initReclassification();
         initMetricPickerModal();
         initNotes();
+        updateTabLocks(); // apply initial lock state
 
         document.getElementById('aw2-run-btn')?.addEventListener('click',   runAnalysis);
         document.getElementById('aw2-reset-btn')?.addEventListener('click', resetAnalysis);
@@ -827,38 +870,27 @@ export function initAnalysis({
 <!-- Config Panel -->
 <div class="aw2-config-panel">
   <div class="aw2-steps">
-    <button class="aw2-step-tab active" data-step="metrics">
-      <span class="aw2-step-num">1</span><span class="aw2-step-label">Select Metrics</span>
+    <button class="aw2-step-tab active" data-step="mode">
+      <span class="aw2-step-num">1</span><span class="aw2-step-label">Analysis Mode</span>
+    </button>
+    <button class="aw2-step-tab" data-step="metrics">
+      <span class="aw2-step-num">2</span><span class="aw2-step-label">Select Metrics</span>
       <span class="aw2-step-badge" id="aw2-metric-badge" style="display:none"></span>
     </button>
     <button class="aw2-step-tab" data-step="years">
-      <span class="aw2-step-num">2</span><span class="aw2-step-label">Select Years</span>
+      <span class="aw2-step-num">3</span><span class="aw2-step-label">Select Years</span>
       <span class="aw2-step-badge" id="aw2-year-badge" style="display:none"></span>
     </button>
-    <button class="aw2-step-tab" data-step="mode">
-      <span class="aw2-step-num">3</span><span class="aw2-step-label">Analysis Mode</span>
-    </button>
-    <button class="aw2-step-tab" data-step="ratios">
+    <button class="aw2-step-tab locked" data-step="ratios">
       <span class="aw2-step-num">4</span><span class="aw2-step-label">Ratio Pairs (A&#247;B)</span>
     </button>
-    <button class="aw2-step-tab" data-step="reclass">
+    <button class="aw2-step-tab locked" data-step="reclass">
       <span class="aw2-step-num">5</span><span class="aw2-step-label">Reclassification</span>
     </button>
   </div>
-  <!-- Step 1 -->
-  <div class="aw2-step-panel active" id="aw2-step-metrics">
-    <p class="aw2-step-hint">Choose section totals, line items, sub-items, KPI formulas, or custom ratios from all your documents.</p>
-    <input type="search" class="aw2-search-input" id="aw2-metric-search" placeholder="&#128269;  Filter metrics&hellip;" />
-    <div class="aw2-metric-tree" id="aw2-metric-tree"></div>
-  </div>
-  <!-- Step 2 -->
-  <div class="aw2-step-panel" id="aw2-step-years">
-    <p class="aw2-step-hint">Click year pills to select. "All" toggles the full range.</p>
-    <div class="aw2-year-pills" id="aw2-year-pills"></div>
-  </div>
-  <!-- Step 3 -->
-  <div class="aw2-step-panel" id="aw2-step-mode">
-    <p class="aw2-step-hint">Choose how to view the data. Ratio mode uses Step 4 pairs instead of the metric list above.</p>
+  <!-- Step 1 — Analysis Mode -->
+  <div class="aw2-step-panel active" id="aw2-step-mode">
+    <p class="aw2-step-hint">Choose how to view the data. Ratio mode uses Step 4 pairs. Enable reclassification to unlock Step 5.</p>
     <div class="aw2-mode-grid">
       <label class="aw2-mode-card selected"><input type="radio" name="aw2-mode-radio" value="raw" checked />
         <div class="aw2-mode-content"><span class="aw2-mode-icon">&#128203;</span><span class="aw2-mode-name">Raw Data</span><span class="aw2-mode-desc">Actual values &middot; Bar chart</span></div>
@@ -870,16 +902,34 @@ export function initAnalysis({
         <div class="aw2-mode-content"><span class="aw2-mode-icon">&#128202;</span><span class="aw2-mode-name">Raw + YoY</span><span class="aw2-mode-desc">Values with change badges &middot; Combo chart</span></div>
       </label>
       <label class="aw2-mode-card"><input type="radio" name="aw2-mode-radio" value="ratios" />
-        <div class="aw2-mode-content"><span class="aw2-mode-icon">&#247;</span><span class="aw2-mode-name">Ratio Analysis</span><span class="aw2-mode-desc">A &#247; B pairs defined in Step 4</span></div>
+        <div class="aw2-mode-content"><span class="aw2-mode-icon">&#247;</span><span class="aw2-mode-name">Ratio Analysis</span><span class="aw2-mode-desc">A &#247; B pairs &mdash; unlocks Step 4</span></div>
+      </label>
+    </div>
+    <div class="aw2-mode-reclass-row">
+      <label class="aw2-toggle-label aw2-mode-reclass-toggle">
+        <input type="checkbox" id="aw2-mode-reclass-cb" />
+        <span class="aw2-toggle-track"></span>
+        <span class="aw2-toggle-text">Include Reclassification &mdash; unlocks Step 5</span>
       </label>
     </div>
   </div>
-  <!-- Step 4 -->
+  <!-- Step 2 — Select Metrics -->
+  <div class="aw2-step-panel" id="aw2-step-metrics">
+    <p class="aw2-step-hint">Choose section totals, line items, sub-items, KPI formulas, or custom ratios from all your documents.</p>
+    <input type="search" class="aw2-search-input" id="aw2-metric-search" placeholder="&#128269;  Filter metrics&hellip;" />
+    <div class="aw2-metric-tree" id="aw2-metric-tree"></div>
+  </div>
+  <!-- Step 3 — Select Years -->
+  <div class="aw2-step-panel" id="aw2-step-years">
+    <p class="aw2-step-hint">Click year pills to select. "All" toggles the full range.</p>
+    <div class="aw2-year-pills" id="aw2-year-pills"></div>
+  </div>
+  <!-- Step 4 — Ratio Pairs -->
   <div class="aw2-step-panel" id="aw2-step-ratios">
     <p class="aw2-step-hint">Define one or more Numerator (Set A) &#247; Denominator (Set B) pairs. Optionally share one denominator across all pairs.</p>
     <div id="aw2-ratio-pairs"></div>
   </div>
-  <!-- Step 5 -->
+  <!-- Step 5 — Reclassification -->
   <div class="aw2-step-panel" id="aw2-step-reclass">
     <p class="aw2-step-hint">Reclassify a line item from one section to another before running analysis.</p>
     <div class="aw2-reclass-row">
