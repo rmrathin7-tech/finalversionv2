@@ -1,5 +1,5 @@
 // js/fsa/ui/analysis.js  ─── complete rebuild
-import { buildFinancialModel }          from "../core/engine.js";
+import { buildFinancialModel, applyReclassifications } from "../core/engine.js";
 import { formatValue, formatIN }        from "../utils/formatters.js";
 import { doc }                          from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db }                           from "../../firebase.js";
@@ -60,7 +60,19 @@ export function initAnalysis({
             const secKey = key.slice(0, sep);
             const itKey  = key.slice(sep + 2);
             const docKey = getDocSource(secKey);
-            return currentFsaData.data?.[docKey]?.[secKey]?.[year]?.[itKey] ?? 0;
+            // Apply reclassification to line-item lookup so reclassified items show correct value
+            const rawVal = currentFsaData.data?.[docKey]?.[secKey]?.[year]?.[itKey] ?? 0;
+            // If this item was reclassified OUT of this section, return 0
+            if (reclassMap?.[docKey]?.[secKey]?.[itKey]) return 0;
+            // If this item was reclassified INTO this section from another section, add inbound value
+            let inbound = 0;
+            const docMap = reclassMap?.[docKey] || {};
+            Object.entries(docMap).forEach(([fromSec, items]) => {
+                if (items[itKey] === secKey) {
+                    inbound += currentFsaData.data?.[docKey]?.[fromSec]?.[year]?.[itKey] ?? 0;
+                }
+            });
+            return rawVal + inbound;
         }
         if (key.startsWith('cr__')) return computeCustomRatio(key.slice(4), year);
         return model[key] ?? 0;
@@ -394,10 +406,10 @@ export function initAnalysis({
 
     // ── Reclassification ─────────────────────────────────────────
     function initReclassification() {
-        const fromSel = document.getElementById('aw2-reclass-from');
-        const toSel   = document.getElementById('aw2-reclass-to');
-        const itemSel = document.getElementById('aw2-reclass-item');
-        if (!fromSel || !toSel || !itemSel) return;
+        const fromSel    = document.getElementById('aw2-reclass-from');
+        const toSel      = document.getElementById('aw2-reclass-to');
+        const itemsWrap  = document.getElementById('aw2-reclass-items-wrap');
+        if (!fromSel || !toSel || !itemsWrap) return;
 
         const sections = allDocSchemas.flatMap(d =>
             (d?.structure || []).filter(s => s.type === 'section').map(s => ({ key: s.key, title: s.title, docKey: d.key }))
@@ -408,27 +420,40 @@ export function initAnalysis({
             toSel.innerHTML   += '<option value="' + s.key + '">' + esc(s.title) + '</option>';
         });
 
-        fromSel.addEventListener('change', () => {
+        function buildItemCheckboxes() {
             const secKey = fromSel.value;
             const docKey = getDocSource(secKey);
             const store  = currentFsaData.data?.[docKey]?.[secKey] || {};
             const items  = new Set();
             Object.values(store).forEach(yr => Object.keys(yr || {}).forEach(i => items.add(i)));
-            itemSel.innerHTML = '';
-            items.forEach(i => { itemSel.innerHTML += '<option value="' + esc(i) + '">' + esc(i) + '</option>'; });
-        });
-        setTimeout(() => fromSel.dispatchEvent(new Event('change')), 0);
+            if (!items.size) {
+                itemsWrap.innerHTML = '<span class="aw2-reclass-items-empty">No items in this section</span>';
+                return;
+            }
+            itemsWrap.innerHTML = [...items].map(i => {
+                const display = i.includes('||') ? i.split('||')[1] : i;
+                return '<label class="aw2-reclass-cb-item">' +
+                    '<input type="checkbox" value="' + esc(i) + '" />' +
+                    '<span>' + esc(display) + '</span></label>';
+            }).join('');
+        }
+
+        fromSel.addEventListener('change', buildItemCheckboxes);
+        setTimeout(buildItemCheckboxes, 0);
 
         document.getElementById('aw2-reclass-apply')?.addEventListener('click', () => {
             const from  = fromSel.value;
             const to    = toSel.value;
-            const items = Array.from(itemSel.selectedOptions).map(o => o.value);
-            const src   = getDocSource(from);
+            const items = Array.from(itemsWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            if (!items.length) { showToast('Select at least one line item to reclassify.'); return; }
+            if (from === to)   { showToast('Source and destination sections must be different.'); return; }
+            const src = getDocSource(from);
             if (!reclassMap[src]) reclassMap[src] = {};
             if (!reclassMap[src][from]) reclassMap[src][from] = {};
             items.forEach(i => { reclassMap[src][from][i] = to; });
+            // Uncheck applied items
+            itemsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
             renderReclassChips();
-            flashBtn('aw2-reclass-apply', '\u2713 Applied', 'var(--positive, #10b981)');
         });
 
         document.getElementById('aw2-reclass-clear')?.addEventListener('click', () => {
@@ -515,15 +540,22 @@ export function initAnalysis({
 
     // ── Run Analysis ──────────────────────────────────────────────
     function runAnalysis() {
-        const mode    = getMode();
-        const metrics = getSelectedMetrics();
-        const years   = getSelectedYears();
-        if (!years.length)                        { showToast('Select at least one year.'); return; }
-        if (mode !== 'ratios' && !metrics.length) { showToast('Select at least one metric.'); return; }
-        if (mode === 'yoy' && years.length < 2)   { showToast('YoY analysis requires at least 2 years.'); return; }
+        const mode      = getMode();
+        const metrics   = getSelectedMetrics();
+        const years     = getSelectedYears();
+        const reclassOn = document.getElementById('aw2-mode-reclass-cb')?.checked ?? false;
+        if (!years.length) { showToast('Select at least one year.'); return; }
+        if (mode === 'yoy' && years.length < 2) { showToast('YoY analysis requires at least 2 years.'); return; }
+        // Metrics are only required for raw/yoy/both modes when reclass is NOT enabled
+        if (mode !== 'ratios' && !reclassOn && !metrics.length) {
+            showToast('Select at least one metric.'); return;
+        }
         document.getElementById('aw2-output-wrap')?.classList.add('visible');
         if (mode === 'ratios') {
             renderRatioOutput(years);
+        } else if (reclassOn && !metrics.length) {
+            // No metrics selected — show full reclassified statements
+            renderReclassOutput(years);
         } else {
             renderTableOutput(metrics, years, mode);
             renderChartOutput(metrics, years, mode);
@@ -534,6 +566,8 @@ export function initAnalysis({
     function renderTableOutput(metrics, years, mode) {
         const container = document.getElementById('aw2-table-area');
         if (!container) return;
+        // Ensure chart card is visible (may have been hidden by renderReclassOutput)
+        document.getElementById('aw2-chart')?.closest('.aw2-chart-card')?.style.removeProperty('display');
         const modeLabel = { raw: 'Raw Values', yoy: 'Year-on-Year Change', both: 'Raw + YoY Change' }[mode] || '';
 
         let html = '<div class="aw2-table-label">' + modeLabel + '</div><div class="aw2-table-scroll">' +
@@ -635,6 +669,8 @@ export function initAnalysis({
         const container = document.getElementById('aw2-table-area');
         if (!container) return;
         if (_chart) { _chart.destroy(); _chart = null; }
+        // Ensure chart card is visible
+        document.getElementById('aw2-chart')?.closest('.aw2-chart-card')?.style.removeProperty('display');
         const canvas = document.getElementById('aw2-chart');
         const pairs = _ratioPairs.filter(p => p.setA.length > 0);
         if (!pairs.length) { container.innerHTML = '<div class="aw2-empty">Configure numerator (Set A) in Step 4 before running.</div>'; return; }
@@ -683,9 +719,70 @@ export function initAnalysis({
         }
     }
 
+    // ── Reclassification Statement Output ────────────────────────
+    function renderReclassOutput(years) {
+        const container = document.getElementById('aw2-table-area');
+        if (!container) return;
+        if (_chart) { _chart.destroy(); _chart = null; }
+        // Hide chart canvas since we show a statement table instead
+        const canvas = document.getElementById('aw2-chart');
+        if (canvas) canvas.closest('.aw2-chart-card')?.style.setProperty('display', 'none');
+
+        let html = '';
+        allDocSchemas.forEach(docSchema => {
+            const sections = (docSchema.structure || []).filter(s => s.type === 'section');
+            if (!sections.length) return;
+
+            // Build reclassified snapshots per year
+            const reclassedByYear = {};
+            years.forEach(y => {
+                const clone = JSON.parse(JSON.stringify(currentFsaData.data?.[docSchema.key] || {}));
+                applyReclassifications(clone, y, docSchema.key, reclassMap);
+                reclassedByYear[y] = clone;
+            });
+
+            html += '<div class="aw2-reclass-doc-heading">' + esc(docSchema.title || docSchema.key.toUpperCase()) + '</div>';
+            html += '<div class="aw2-table-scroll"><table class="aw2-table">';
+            html += '<thead><tr><th class="aw2-col-fixed">Line Item</th>' +
+                years.map(y => '<th>' + esc(y) + '</th>').join('') + '</tr></thead><tbody>';
+
+            sections.forEach(section => {
+                html += '<tr class="aw2-reclass-sec-head"><td colspan="' + (years.length + 1) + '">' + esc(section.title) + '</td></tr>';
+
+                // Collect all line items across all years for this section
+                const allItems = new Set();
+                years.forEach(y => {
+                    Object.keys(reclassedByYear[y][section.key]?.[y] || {}).forEach(i => allItems.add(i));
+                });
+
+                allItems.forEach(item => {
+                    const displayName = item.includes('||') ? item.split('||')[1] : item;
+                    html += '<tr><td class="aw2-col-fixed aw2-reclass-li">' + esc(displayName) + '</td>';
+                    years.forEach(y => {
+                        const val = reclassedByYear[y][section.key]?.[y]?.[item] ?? 0;
+                        html += '<td>' + (val !== 0 ? formatIN(val) : '&mdash;') + '</td>';
+                    });
+                    html += '</tr>';
+                });
+
+                // Section total using the reclassified model
+                html += '<tr class="aw2-reclass-sec-total"><td class="aw2-col-fixed"><strong>' + esc(section.title) + ' Total</strong></td>';
+                years.forEach(y => {
+                    const model = buildFinancialModel(currentFsaData.data, y, reclassMap, engineConfig);
+                    const val = model[section.key] ?? 0;
+                    html += '<td><strong>' + formatIN(val) + '</strong></td>';
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+        });
+
+        container.innerHTML = html || '<div class="aw2-empty">No document sections found to display.</div>';
+    }
+
     // ── Toast ─────────────────────────────────────────────────────
-    function showToast(msg) {
-        const el = document.getElementById('aw2-toast');
+    function showToast(msg) {        const el = document.getElementById('aw2-toast');
         if (!el) { alert(msg); return; }
         el.textContent = msg; el.classList.add('show');
         clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3000);
@@ -933,15 +1030,24 @@ export function initAnalysis({
   </div>
   <!-- Step 5 — Reclassification -->
   <div class="aw2-step-panel" id="aw2-step-reclass">
-    <p class="aw2-step-hint">Reclassify a line item from one section to another before running analysis.</p>
+    <p class="aw2-step-hint">Reclassify line items between sections before running analysis. If no metrics are selected, Run Analysis will show the full reclassified statement.</p>
     <div class="aw2-reclass-row">
-      <div class="aw2-reclass-col"><label class="aw2-field-label">From Section</label><select id="aw2-reclass-from" class="aw2-select"></select></div>
-      <div class="aw2-reclass-col aw2-reclass-items"><label class="aw2-field-label">Line Items <small>(Ctrl/&#8984; for multi)</small></label><select id="aw2-reclass-item" multiple class="aw2-select aw2-select-multi"></select></div>
+      <div class="aw2-reclass-col">
+        <label class="aw2-field-label">From Section</label>
+        <select id="aw2-reclass-from" class="aw2-select"></select>
+      </div>
+      <div class="aw2-reclass-col aw2-reclass-items">
+        <label class="aw2-field-label">Line Items</label>
+        <div id="aw2-reclass-items-wrap" class="aw2-reclass-cb-list"></div>
+      </div>
       <span class="aw2-reclass-arrow">&#8594;</span>
-      <div class="aw2-reclass-col"><label class="aw2-field-label">To Section</label><select id="aw2-reclass-to" class="aw2-select"></select></div>
+      <div class="aw2-reclass-col">
+        <label class="aw2-field-label">To Section</label>
+        <select id="aw2-reclass-to" class="aw2-select"></select>
+      </div>
       <div class="aw2-reclass-actions">
-        <button id="aw2-reclass-apply" class="aw2-btn-apply">Apply</button>
-        <button id="aw2-reclass-clear" class="aw2-btn-clear">Clear All</button>
+        <button id="aw2-reclass-apply" class="aw2-btn-primary aw2-btn-sm">&#10003; Apply</button>
+        <button id="aw2-reclass-clear" class="aw2-btn-ghost aw2-btn-sm">&#215; Clear All</button>
       </div>
     </div>
     <div class="aw2-reclass-chips-row"><span class="aw2-field-label">Active:</span><div id="aw2-reclass-active"></div></div>

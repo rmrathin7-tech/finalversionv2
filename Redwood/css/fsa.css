@@ -4137,6 +4137,69 @@ details[open] .kpi-advanced-summary::before {
 }
 .aw2-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow-sm); }
 .aw2-select-multi { min-height: 80px; }
+
+/* ── Reclass checkbox item list ──────────────────────────── */
+.aw2-reclass-cb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 140px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-width: 160px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.aw2-reclass-cb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: 5px;
+  transition: background 0.15s;
+  user-select: none;
+}
+.aw2-reclass-cb-item:hover { background: var(--accent-glow-sm); }
+.aw2-reclass-cb-item input[type="checkbox"] { accent-color: var(--brand-primary, #6366f1); cursor: pointer; }
+.aw2-reclass-items-empty { font-size: 11px; color: var(--text-muted); font-style: italic; padding: 4px; }
+
+/* ── Small button modifier ───────────────────────────────── */
+.aw2-btn-sm { padding: 7px 14px !important; font-size: 12px !important; }
+
+/* ── Reclassified output table styles ───────────────────── */
+.aw2-reclass-doc-heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-accent, var(--brand-primary));
+  padding: 16px 0 8px;
+  border-bottom: 2px solid var(--brand-primary, #6366f1);
+  margin-bottom: 8px;
+}
+.aw2-reclass-sec-head td {
+  background: var(--bg-input) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 12px !important;
+}
+.aw2-reclass-li { padding-left: 24px !important; color: var(--text); }
+.aw2-reclass-sec-total td {
+  border-top: 1px solid var(--border-strong) !important;
+  background: rgba(99,102,241,0.05) !important;
+  font-weight: 700;
+}
+
+
 .aw2-reclass-chips-row { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .aw2-reclass-chips-row .aw2-field-label { margin-top: 6px; flex-shrink: 0; }
 .aw2-reclass-empty { font-size: 11px; color: var(--text-muted); font-style: italic; }
